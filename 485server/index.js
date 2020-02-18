@@ -52,11 +52,20 @@ const CONST = {
 		//{deviceId: 'Light', subId: '1', stateHex: Buffer.alloc(5,'b07931067e','hex'), power1: 'off', power2: 'on' , power3: 'on' }, //상태-06
 		//{deviceId: 'Light', subId: '1', stateHex: Buffer.alloc(5,'b07931077f','hex'), power1: 'on' , power2: 'on' , power3: 'on' }, //상태-07
 		// 전등 갯수가 2개인경우
-		{ deviceId: 'Light', subId: '1', stateHex: Buffer.alloc(5, 'b079210068', 'hex'), power1: 'off', power2: 'off' }, //상태-00
-		{ deviceId: 'Light', subId: '1', stateHex: Buffer.alloc(5, 'b079210169', 'hex'), power1: 'on', power2: 'off' }, //상태-01
-		{ deviceId: 'Light', subId: '1', stateHex: Buffer.alloc(5, 'b07921026a', 'hex'), power1: 'off', power2: 'on' }, //상태-02
-		{ deviceId: 'Light', subId: '1', stateHex: Buffer.alloc(5, 'b07921036b', 'hex'), power1: 'on', power2: 'on' }, //상태-03
-		// 
+		// { deviceId: 'Light', subId: '1', stateHex: Buffer.alloc(5, 'b079210068', 'hex'), power1: 'off', power2: 'off' }, //상태-00
+		// { deviceId: 'Light', subId: '1', stateHex: Buffer.alloc(5, 'b079210169', 'hex'), power1: 'on', power2: 'off' }, //상태-01
+		// { deviceId: 'Light', subId: '1', stateHex: Buffer.alloc(5, 'b07921026a', 'hex'), power1: 'off', power2: 'on' }, //상태-02
+		// { deviceId: 'Light', subId: '1', stateHex: Buffer.alloc(5, 'b07921036b', 'hex'), power1: 'on', power2: 'on' }, //상태-03
+		// 수정
+		{ deviceId: 'Light', subId: '1', stateHex: Buffer.alloc(5, 'b079210068', 'hex'), switch: 'off' }, //상태-00
+		{ deviceId: 'Light', subId: '2', stateHex: Buffer.alloc(5, 'b079210068', 'hex'), switch: 'off' }, //상태-00
+		{ deviceId: 'Light', subId: '1', stateHex: Buffer.alloc(5, 'b079210169', 'hex'), switch: 'on' }, //상태-01
+		{ deviceId: 'Light', subId: '2', stateHex: Buffer.alloc(5, 'b079210169', 'hex'), switch: 'off' }, //상태-01
+		{ deviceId: 'Light', subId: '1', stateHex: Buffer.alloc(5, 'b07921026a', 'hex'), switch: 'off' }, //상태-02
+		{ deviceId: 'Light', subId: '2', stateHex: Buffer.alloc(5, 'b07921026a', 'hex'), switch: 'on' }, //상태-02
+		{ deviceId: 'Light', subId: '1', stateHex: Buffer.alloc(5, 'b07921036b', 'hex'), switch: 'on' }, //상태-03
+		{ deviceId: 'Light', subId: '2', stateHex: Buffer.alloc(5, 'b07921036b', 'hex'), switch: 'on' }, //상태-03
+		// 환풍기
 		// { deviceId: 'Fan', subId: '1', stateHex: Buffer.alloc(6, 'b04e0300017c', 'hex'), power: 'off', speed: 'low' },
 		// { deviceId: 'Fan', subId: '1', stateHex: Buffer.alloc(6, 'b04e0200017d', 'hex'), power: 'off', speed: 'mid' },
 		// { deviceId: 'Fan', subId: '1', stateHex: Buffer.alloc(6, 'b04e0100017e', 'hex'), power: 'off', speed: 'high' },
@@ -85,11 +94,16 @@ const CONST = {
 		//{deviceId: 'Light', subId: '1', commandHex: Buffer.alloc(5,'ac7a030055','hex'), power3: 'off'}, //거실3--off
 		//{deviceId: 'Light', subId: '1', commandHex: Buffer.alloc(5,'ac7a030154','hex'), power3: 'on' }, //거실3--on
 		// 전등 갯수가 2개인경우
-		{ deviceId: 'Light', subId: '1', commandHex: Buffer.alloc(5, 'ac7a010057', 'hex'), power1: 'off' }, //거실1--off
-		{ deviceId: 'Light', subId: '1', commandHex: Buffer.alloc(5, 'ac7a010156', 'hex'), power1: 'on' }, //거실1--on
-		{ deviceId: 'Light', subId: '1', commandHex: Buffer.alloc(5, 'ac7a020054', 'hex'), power2: 'off' }, //거실2--off
-		{ deviceId: 'Light', subId: '1', commandHex: Buffer.alloc(5, 'ac7a020155', 'hex'), power2: 'on' }, //거실2--on
-		//
+		// { deviceId: 'Light', subId: '1', commandHex: Buffer.alloc(5, 'ac7a010057', 'hex'), power1: 'off' }, //거실1--off
+		// { deviceId: 'Light', subId: '1', commandHex: Buffer.alloc(5, 'ac7a010156', 'hex'), power1: 'on' }, //거실1--on
+		// { deviceId: 'Light', subId: '1', commandHex: Buffer.alloc(5, 'ac7a020054', 'hex'), power2: 'off' }, //거실2--off
+		// { deviceId: 'Light', subId: '1', commandHex: Buffer.alloc(5, 'ac7a020155', 'hex'), power2: 'on' }, //거실2--on
+		// 수정 - fornever2
+		{ deviceId: 'Light', subId: '1', commandHex: Buffer.alloc(5, 'ac7a010057', 'hex'), switch: 'off' }, //거실1--off
+		{ deviceId: 'Light', subId: '1', commandHex: Buffer.alloc(5, 'ac7a010156', 'hex'), switch: 'on' }, //거실1--on
+		{ deviceId: 'Light', subId: '2', commandHex: Buffer.alloc(5, 'ac7a020054', 'hex'), switch: 'off' }, //거실2--off
+		{ deviceId: 'Light', subId: '2', commandHex: Buffer.alloc(5, 'ac7a020155', 'hex'), switch: 'on' }, //거실2--on
+		// 환풍기
 		// { deviceId: 'Fan', subId: '1', commandHex: Buffer.alloc(6, 'c24f05000008', 'hex'), power: 'on' }, //켜짐
 		// { deviceId: 'Fan', subId: '1', commandHex: Buffer.alloc(6, 'c24f0600000b', 'hex'), power: 'off' }, //꺼짐
 		// { deviceId: 'Fan', subId: '1', commandHex: Buffer.alloc(6, 'c24f0300000e', 'hex'), speed: 'low' }, //약(켜짐)
@@ -232,7 +246,13 @@ parser.on('data', function (data) {
 	// 첫번째 바이트가 'b0'이면 응답 메시지
 	if(data[0] != 0xb0)	return;
 	switch (data[1]) {
-		case 0x79: case 0x4e: 	// 조명,환풍기 상태 정보
+		case 0x79: 	// 조명 상태 정보
+			var objFoundArr = CONST.DEVICE_STATE.filter(obj => data.equals(obj.stateHex));
+			objFoundArr.forEach(function(objFound) {
+				updateStatus(objFound);
+			});
+			break;
+		case 0x4e: 	// 환풍기 상태 정보
 			var objFound = CONST.DEVICE_STATE.find(obj => data.equals(obj.stateHex));
 			if(objFound)
 				updateStatus(objFound);
