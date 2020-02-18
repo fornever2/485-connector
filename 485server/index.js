@@ -313,20 +313,20 @@ var updateStatus = (obj) => {
 		log('[MQTT] Send to HA:', topic, '->', obj[stateName]);
 
 		// (SmartThings send event)
-		updateDeviceStatus(obj.deviceId+obj.subId, stateName, obj[stateName]);
+		updateSTDeviceProperty(obj.deviceId+obj.subId, stateName, obj[stateName]);
 	});
 }
 
-function updateDeviceStatus(deviceId, stateName, stateValue) {
+function updateSTDeviceProperty(deviceId, propertyName, propertyValue) {
 	var device = deviceStatus.find(o => o.id === deviceId);
 	if (!device) {
 		var len = deviceStatus.push({
 			id: deviceId,
-			status: {}
+			property: {}
 		});
 		device = deviceStatus[len - 1];
 	}
-	device.status[stateName] = stateValue;
+	device.property[propertyName] = propertyValue;
 }
 
 
@@ -478,7 +478,7 @@ app.get('/' + CONST.TOPIC_PRFIX + '/:id/:property', function (req, res) {
 		if (!deviceFound) {
 			throw new Error('No device found');
 		}
-		var propertyFound = deviceFound.status[req.params.property];
+		var propertyFound = deviceFound.property[req.params.property];
 		if (!propertyFound) {
 			throw new Error('No property found');
 		}
@@ -493,14 +493,11 @@ app.get('/' + CONST.TOPIC_PRFIX + '/:id/:property', function (req, res) {
 	res.send(result);
 });
 
-app.put('/' + CONST.TOPIC_PRFIX + '/:id/:property', function (req, res) {
+app.put('/' + CONST.TOPIC_PRFIX + '/:id/:property/:value', function (req, res) {
 	console.log('[' + req.method + '] ' + req.url);
 	var result = {};
 	try {
-		var ret = setValue(req.params.id, req.params.property, req.body[req.params.property]);
-		if (!ret) {
-			throw new Error('setValue() FAILED');
-		}
+		setValue(req.params.id, req.params.property, req.params.value);
 		res.status(200);
 		result.message = "Success";
 	} catch (e) {
