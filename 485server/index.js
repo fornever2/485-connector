@@ -320,11 +320,11 @@ var updateStatus = (obj) => {
 function updateDeviceStatus(deviceId, stateName, stateValue) {
 	var device = deviceStatus.find(o => o.id === deviceId);
 	if (!device) {
-		var index = deviceStatus.push({
+		var len = deviceStatus.push({
 			id: deviceId,
 			status: {}
 		});
-		device = deviceStatus[index];
+		device = deviceStatus[len - 1];
 	}
 	device.status[stateName] = stateValue;
 }
