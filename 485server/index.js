@@ -311,8 +311,24 @@ var updateStatus = (obj) => {
 		var topic = util.format(CONST.STATE_TOPIC, obj.deviceId, obj.subId, stateName);
 		client.publish(topic, obj[stateName], {retain: true});
 		log('[MQTT] Send to HA:', topic, '->', obj[stateName]);
+
+		// (SmartThings send event)
+		updateDeviceStatus(obj.deviceId+obj.subId, stateName, obj[stateName]);
 	});
 }
+
+function updateDeviceStatus(deviceId, stateName, stateValue) {
+	var device = deviceStatus.find(o => o.id === deviceId);
+	if (!device) {
+		var index = deviceStatus.push({
+			id: deviceId,
+			status: {}
+		});
+		device = deviceStatus[index];
+	}
+	device.status[stateName] = stateValue;
+}
+
 
 //////////////////////////////////////////////////////////////////////////////////////
 // HA에서 MQTT로 제어 명령 수신
@@ -497,49 +513,49 @@ app.put('/' + CONST.TOPIC_PRFIX + '/:id/:property', function (req, res) {
 });
 
 
-var deviceStatus = [
-	{
-		"id": "Light1",
-		"type": "Light",
-		"status": {
-			"switch": "on"
-		}
-	},
-	{
-		"id": "Light2",
-		"type": "Light",
-		"status": {
-			"switch": "on"
-		}
-	},
-	{
-		"id": "Thermo1",
-		"type": "Thermostat",
-		"status": {
-			"power": "heat",
-			"setTemp": "25",
-			"curTemp": "22"
-		}
-	},
-	{
-		"id": "Thermo2",
-		"type": "Thermostat",
-		"status": {
-			"power": "off",
-			"setTemp": "26",
-			"curTemp": "21"
-		}
-	},
-	{
-		"id": "Thermo3",
-		"type": "Thermostat",
-		"status": {
-			"power": "off",
-			"setTemp": "25",
-			"curTemp": "22"
-		}
-	}
-];
+// var deviceStatus = [
+// 	{
+// 		"id": "Light1",
+// 		"type": "Light",
+// 		"status": {
+// 			"switch": "on"
+// 		}
+// 	},
+// 	{
+// 		"id": "Light2",
+// 		"type": "Light",
+// 		"status": {
+// 			"switch": "on"
+// 		}
+// 	},
+// 	{
+// 		"id": "Thermo1",
+// 		"type": "Thermostat",
+// 		"status": {
+// 			"power": "heat",
+// 			"setTemp": "25",
+// 			"curTemp": "22"
+// 		}
+// 	},
+// 	{
+// 		"id": "Thermo2",
+// 		"type": "Thermostat",
+// 		"status": {
+// 			"power": "off",
+// 			"setTemp": "26",
+// 			"curTemp": "21"
+// 		}
+// 	},
+// 	{
+// 		"id": "Thermo3",
+// 		"type": "Thermostat",
+// 		"status": {
+// 			"power": "off",
+// 			"setTemp": "25",
+// 			"curTemp": "22"
+// 		}
+// 	}
+// ];
 
 // ## capabilities : https://docs.smartthings.com/en/latest/capabilities-reference.html#
 // light
