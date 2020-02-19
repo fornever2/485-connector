@@ -240,7 +240,7 @@ parser.on('data', function (data) {
 	} else {
 		packets[data] = 1;
 		// 최초로 발생한 패킷만 출력
-		console.log(data.toString('hex'));
+		log("[RS485] New packet : ", data.toString('hex'))
 	}
 
 	// 첫번째 바이트가 'b0'이면 응답 메시지
