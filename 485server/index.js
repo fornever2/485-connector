@@ -321,8 +321,9 @@ function updateSTDeviceProperty(deviceId, subId, propertyName, propertyValue) {
 	var device = deviceStatus.find(o => (o.id === deviceId) && (o.subId === subId));
 	if (!device) {
 		var len = deviceStatus.push({
-			id: deviceId,
-			subId: subId,
+			type: deviceId,
+			id: deviceId + subId,
+			uri: '/' + CONST.STATE_TOPIC + '/' + deviceId + subId,
 			property: {}
 		});
 		device = deviceStatus[len - 1];
@@ -456,7 +457,7 @@ app.get('/' + CONST.TOPIC_PRFIX + '/:id', function (req, res) {
 	console.log('[' + req.method + '] ' + req.url);
 	var result = {};
 	try {
-		var deviceFound = deviceStatus.find((e) => (e.id + e.subId) === req.params.id);
+		var deviceFound = deviceStatus.find((e) => e.id === req.params.id);
 		if (!deviceFound) {
 			throw new Error('No device found');
 		}
@@ -475,7 +476,7 @@ app.get('/' + CONST.TOPIC_PRFIX + '/:id/:property', function (req, res) {
 	console.log('[' + req.method + '] ' + req.url);
 	var result = {};
 	try {
-		var deviceFound = deviceStatus.find((e) => (e.id + e.subId) === req.params.id);
+		var deviceFound = deviceStatus.find((e) => e.id === req.params.id);
 		if (!deviceFound) {
 			throw new Error('No device found');
 		}
