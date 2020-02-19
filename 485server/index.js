@@ -323,7 +323,7 @@ function updateSTDeviceProperty(deviceId, subId, propertyName, propertyValue) {
 		var len = deviceStatus.push({
 			type: deviceId,
 			id: deviceId + subId,
-			uri: '/' + CONST.STATE_TOPIC + '/' + deviceId + subId,
+			uri: '/' + CONST.TOPIC_PRFIX + '/' + deviceId + subId,
 			property: {}
 		});
 		device = deviceStatus[len - 1];
@@ -383,8 +383,8 @@ var setValue = (deviceSubId, property, value) => {
 	log('Add to queue for applying new value.');
 	// 최초 실행시 딜레이 없도록 sentTime을 현재시간 보다 sendDelay만큼 이전으로 설정
 	objFound.sentTime = (new Date().getTime()) - CONST.sendDelay;
-	queue.push(objFound);	// 실행 큐에 저장
-	updateStatus(objFound); // 처리시간의 Delay때문에 미리 상태 반영
+	//queue.push(objFound);	// 실행 큐에 저장
+	//updateStatus(objFound); // 처리시간의 Delay때문에 미리 상태 반영
 }
 
 //////////////////////////////////////////////////////////////////////////////////////
