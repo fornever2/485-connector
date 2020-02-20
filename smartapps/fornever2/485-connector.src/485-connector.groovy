@@ -13,6 +13,7 @@
  *  for the specific language governing permissions and limitations under the License.
  *
  */
+
 import groovy.json.JsonSlurper
 
 definition(
@@ -30,7 +31,6 @@ definition(
 preferences {
     page(name: "settingPage")
     page(name: "connectingPage")
-    page(name: "donePage")
 }
 
 def installed() {
@@ -71,10 +71,11 @@ def settingPage(){
 	state.curStatus = "setting"    
 	dynamicPage(name:"settingPage", title:"Settings", nextPage: "connectingPage", uninstall: true) {
         section("Label") {
-        	label name: "label", title:"You can chane the name of this smartapp", required: false, multiple: false, description: name
+        	label name: "label", title:"You can change the name of this smartapp", required: false, multiple: false, description: name
         }
 		section("RS485 server setting") {
-        	input "serverAddress", "text", title: "IP Address of RS485 server (ex. 192.168.29.101:8888)", required: true, value: "192.168.29.101:8888"
+        	paragraph "RS485 server should be accessible from SmartThings cloud. Please input RS485 server's IP address including port number.\nNOTE) Do not input local network address."
+        	input "serverAddress", "text", title: "IP address (ex. 111.111.111.111:11)", required: true, value: "211.218.213.108:8888"
         }
 	}
 }
@@ -86,39 +87,22 @@ def connectingPage(){
     if (state.curStatus == "setting") {
     	state.curStatus = "connecting"
         getStatusOfConnector(addr, connectorCallback)
-        //state.count = 1;
     } 
     
     if (state.curStatus == "setting" || state.curStatus == "connecting") {
-        //state.count = state.count + 1;
-        log.debug "connectingPage() 111 - ${state.curStatus} , ${state.count}"
-        //if (state.count > 5) 
-        	//state.curStatus = "connected"
-
         dynamicPage(name:"connectingPage", title:"Connecting", refreshInterval:1) {
 			section("Connecting") {
         		paragraph "Trying to connect ${addr}\nPlease wait...."        	
         	}
 		}        
     } else if (state.curStatus == "connected") {
-    	log.debug "connectingPage() 222 - ${state.curStatus}"
-        dynamicPage(name:"connectingPage", title:"Connected", nextPage: "donePage", install: true, uninstall: true) {
+        dynamicPage(name:"connectingPage", title:"Connected", install: true, uninstall: true) {
 			section("Connected") {
         		paragraph "Connected to ${addr}"
+                paragraph "Added Count : " + state.addedCountNow
         	}
 		}
     }
-}
-
-def donePage(){
-	log.debug "donePage() - ${state.curStatus}"
-	dynamicPage(name:"donePage", title:"Done", install: true) {
-    	log.debug "dynamicPage() - 333"
-		section("Done") {
-        	log.debug "section() - 333"
-        	paragraph "@@@@@@@@"
-        }
-	}
 }
 
 def getStatusOfConnector(address, _callback) {	
@@ -142,6 +126,40 @@ def connectorCallback(physicalgraph.device.HubResponse hubResponse){
         
         def jsonObj = msg.json
         log.debug jsonObj
+        
+        log.debug "jsonObj.status : ${jsonObj.status}"
+        log.debug "jsonObj.message : ${jsonObj.message}"
+        def count = 0
+        jsonObj.message.each{ item->
+            def dni = "485-connector-" + item.id.toLowerCase()
+            log.debug "dni : ${dni}, item : ${item}"
+            if(!getChildDevice(dni)){
+            	try{
+                	def typeName
+                	if (item.type == "Light") {
+						typeName = "485-switch"
+                    } else if (item.type == "Thermo") {
+                    	typeName = "485-switch"
+                    }
+                    
+                    def childDevice = addChildDevice("fornever2", typeName, dni, location.hubs[0].id, [
+                    	"label": item.id,
+                        "uri": item.uri
+                    ])
+
+                    childDevice.setUrl("${settings.serverAddress}")
+                    childDevice.setPath("/homenet/${item.id}")
+                    //childDevice.setEspName(name)
+                    //childDevice.setAutoRefresh(settings.devAutoRefreshMode)
+                    
+                    state.addedCountNow = (state.addedCountNow.toInteger() + 1)
+                    log.debug "ADD >> ${dni}"
+                }catch(e){
+                	log.error("ADD DEVICE Error!!! ${e}")
+                }
+            }
+        }
+        
         
         state.curStatus = "connected"
         log.debug "connected"
