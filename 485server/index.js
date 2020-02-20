@@ -73,16 +73,16 @@ const CONST = {
 		// { deviceId: 'Fan', subId: '1', stateHex: Buffer.alloc(6, 'b04e0200007c', 'hex'), power: 'on', speed: 'mid' },
 		// { deviceId: 'Fan', subId: '1', stateHex: Buffer.alloc(6, 'b04e0100007f', 'hex'), power: 'on', speed: 'high' },
 		// 난방
-		{ deviceId: 'Thermo', subId: '1', stateHex: Buffer.alloc(4, 'b07c0101', 'hex'), power: 'heat', setTemp: '', curTemp: '' },
-		{ deviceId: 'Thermo', subId: '1', stateHex: Buffer.alloc(4, 'b07c0100', 'hex'), power: 'off', setTemp: '', curTemp: '' },
+		{ deviceId: 'Thermo', subId: '1', stateHex: Buffer.alloc(4, 'b07c0101', 'hex'), power: 'heat', setTemp: '', curTemp: '' },	// 거실
+		{ deviceId: 'Thermo', subId: '1', stateHex: Buffer.alloc(4, 'b07c0100', 'hex'), power: 'off', setTemp: '', curTemp: '' },	// 거실
 		{ deviceId: 'Thermo', subId: '2', stateHex: Buffer.alloc(4, 'b07c0201', 'hex'), power: 'heat', setTemp: '', curTemp: '' },
 		{ deviceId: 'Thermo', subId: '2', stateHex: Buffer.alloc(4, 'b07c0200', 'hex'), power: 'off', setTemp: '', curTemp: '' },
-		{ deviceId: 'Thermo', subId: '3', stateHex: Buffer.alloc(4, 'b07c0301', 'hex'), power: 'heat', setTemp: '', curTemp: '' },
-		{ deviceId: 'Thermo', subId: '3', stateHex: Buffer.alloc(4, 'b07c0300', 'hex'), power: 'off', setTemp: '', curTemp: '' },
-		{ deviceId: 'Thermo', subId: '4', stateHex: Buffer.alloc(4, 'b07c0401', 'hex'), power: 'heat', setTemp: '', curTemp: '' },
-		{ deviceId: 'Thermo', subId: '4', stateHex: Buffer.alloc(4, 'b07c0400', 'hex'), power: 'off', setTemp: '', curTemp: '' },
-		{ deviceId: 'Thermo', subId: '5', stateHex: Buffer.alloc(4, 'b07c0501', 'hex'), power: 'heat', setTemp: '', curTemp: '' },
-		{ deviceId: 'Thermo', subId: '5', stateHex: Buffer.alloc(4, 'b07c0500', 'hex'), power: 'off', setTemp: '', curTemp: '' }
+		{ deviceId: 'Thermo', subId: '3', stateHex: Buffer.alloc(4, 'b07c0301', 'hex'), power: 'heat', setTemp: '', curTemp: '' },	// 침실 1
+		{ deviceId: 'Thermo', subId: '3', stateHex: Buffer.alloc(4, 'b07c0300', 'hex'), power: 'off', setTemp: '', curTemp: '' },	// 침실 1
+		{ deviceId: 'Thermo', subId: '4', stateHex: Buffer.alloc(4, 'b07c0401', 'hex'), power: 'heat', setTemp: '', curTemp: '' },	// 침실 2
+		{ deviceId: 'Thermo', subId: '4', stateHex: Buffer.alloc(4, 'b07c0400', 'hex'), power: 'off', setTemp: '', curTemp: '' },	// 침실 2
+		{ deviceId: 'Thermo', subId: '5', stateHex: Buffer.alloc(4, 'b07c0501', 'hex'), power: 'heat', setTemp: '', curTemp: '' },	// 침실 3
+		{ deviceId: 'Thermo', subId: '5', stateHex: Buffer.alloc(4, 'b07c0500', 'hex'), power: 'off', setTemp: '', curTemp: '' }	// 침실 3
 	],
 
 	DEVICE_COMMAND: [
@@ -240,7 +240,7 @@ parser.on('data', function (data) {
 	} else {
 		packets[data] = 1;
 		// 최초로 발생한 패킷만 출력
-		log("[RS485] New packet : ", data.toString('hex'))
+		log("[Serial] New packet : ", data.toString('hex'))
 	}
 
 	// 첫번째 바이트가 'b0'이면 응답 메시지
@@ -297,9 +297,12 @@ var updateStatus = (obj) => {
 	arrStateName.forEach( function(stateName) {
 		// 상태값이 없거나 상태가 같으면 반영 중지
 		var curStatus = homeStatus[obj.deviceId+obj.subId+stateName];
-		if(obj[stateName] == null || obj[stateName] === curStatus) return;
+		if(obj[stateName] == null || obj[stateName] === curStatus) {
+			//log('The status is same as before... skip...');
+			return;
+		}
 
-		//log('updateStatus: deviceId[' + obj.deviceId + '], subId[' + obj.subId + '], stateHex[' + obj.stateHex.toString('hex'));
+		//log('updateStatus: deviceId[' + obj.deviceId + '], subId[' + obj.subId + '], stateHex[' + obj.stateHex.toString('hex') + ']');
 
 		// 미리 상태 반영한 device의 상태 원복 방지
 		if(queue.length > 0) {
@@ -329,6 +332,8 @@ function updateSTDeviceProperty(deviceId, subId, propertyName, propertyValue) {
 		device = deviceStatus[len - 1];
 	}
 	device.property[propertyName] = propertyValue;
+
+	// TODO : Send to ST
 }
 
 
@@ -436,81 +441,85 @@ app.get("/", function (req, res) {
 });
 
 app.get('/' + CONST.TOPIC_PRFIX, function (req, res) {
-	console.log('[' + req.method + '] ' + req.url);
+	log('[' + req.method + '] ' + req.url);
 	var result = {};
 	try {
 		if (!deviceStatus || deviceStatus.length == 0) {
 			throw new Error('No device found');
 		}
-		res.status(200);
 		result.message = deviceStatus;
+		res.status(200);
 	} catch (e) {
-		res.status(400);
 		result.message = e.toString();
+		res.status(400);
 	}
 	result.status = res.statusCode;
-	console.log('[result] : ' + JSON.stringify(result));
+	log('[result] : ' + JSON.stringify(result));
 	res.send(result);
 });
 
 app.get('/' + CONST.TOPIC_PRFIX + '/:id', function (req, res) {
-	console.log('[' + req.method + '] ' + req.url);
+	log('[' + req.method + '] ' + req.url);
 	var result = {};
 	try {
-		var deviceFound = deviceStatus.find((e) => e.id === req.params.id);
-		if (!deviceFound) {
-			throw new Error('No device found');
-		}
+		result.message = getDeviceStatus(req.params.id);
 		res.status(200);
-		result.message = deviceFound;
 	} catch (e) {
-		res.status(400);
 		result.message = e.toString();
+		res.status(400);
 	}
 	result.status = res.statusCode;
-	console.log('[result] : ' + JSON.stringify(result));
+	log('[result] : ' + JSON.stringify(result));
 	res.send(result);
 });
 
 app.get('/' + CONST.TOPIC_PRFIX + '/:id/:property', function (req, res) {
-	console.log('[' + req.method + '] ' + req.url);
+	log('[' + req.method + '] ' + req.url);
 	var result = {};
 	try {
-		var deviceFound = deviceStatus.find((e) => e.id === req.params.id);
-		if (!deviceFound) {
-			throw new Error('No device found');
-		}
-		var propertyFound = deviceFound.property[req.params.property];
-		if (!propertyFound) {
-			throw new Error('No property found');
-		}
+		result.message = getPropertyStatus(req.params.id, req.params.property);
 		res.status(200);
-		result.message = propertyFound;
 	} catch (e) {
-		res.status(400);
 		result.message = e.toString();
+		res.status(400);
 	}
 	result.status = res.statusCode;
-	console.log('[result] : ' + JSON.stringify(result));
+	log('[result] : ' + JSON.stringify(result));
 	res.send(result);
 });
 
 app.put('/' + CONST.TOPIC_PRFIX + '/:id/:property/:value', function (req, res) {
-	console.log('[' + req.method + '] ' + req.url);
+	log('[' + req.method + '] ' + req.url);
 	var result = {};
 	try {
 		setValue(req.params.id, req.params.property, req.params.value);
+		result.message = "Success"//getPropertyStatus(req.params.id, req.params.property);
 		res.status(200);
-		result.message = "Success";
 	} catch (e) {
-		res.status(400);
 		result.message = e.toString();
+		res.status(400);
 	}
 	result.status = res.statusCode;
-	console.log('[result] : ' + JSON.stringify(result));
+	log('[result] : ' + JSON.stringify(result));
 	res.send(result);
 });
 
+function getDeviceStatus(id) {
+	var deviceFound = deviceStatus.find((e) => e.id === id);
+	if (!deviceFound) {
+		throw new Error('No device found');
+	}
+	return deviceFound;
+}
+
+function getPropertyStatus(id, propertyName) {
+	var property = {};
+	property[propertyName] = getDeviceStatus(id).property[propertyName];
+	if (!property[propertyName]) {
+		throw new Error('No property found');
+	}
+	return property;
+}
 
 // var deviceStatus = [
 // 	{
