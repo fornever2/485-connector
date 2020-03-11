@@ -37,8 +37,42 @@ const CONST = {
 	httpPort: 8888,
 
 	// 메시지 Prefix 상수
-	//MSG_PREFIX: [0xb0, 0xac, 0xae, 0xc2, 0xad, 0xab, 0xcc, 0xa1, 0xa2, 0xa3, 0xa4, 0xa5, 0xa6],
-	MSG_PREFIX: [0xb0, 0xac, 0xae, 0xc2, 0xad, 0xab],
+	MSG_PREFIX: [0xb0, 0xac, 0xae, 0xc2, 0xad, 0xab, 0xcc, 0xa1, 0xa2, 0xa3, 0xa4, 0xa5, 0xa6],
+
+	MSG_CATEGORY: [
+		{ code: 0xb0, type: 'response' },	// 응답
+		{ code: 0xac, type: 'light' },		// 조명
+		{ code: 0xae, type: 'heat' },		// 난방
+		{ code: 0xc2, type: 'vent' },		// 환기
+		{ code: 0xad, type: 'entrance' },	// 현관
+		{ code: 0xab, type: 'gas' },			// 가스밸브
+		{ code: 0xcc, type: 'unknown' },
+		{ code: 0xa1, type: 'unknown' },
+		{ code: 0xa2, type: 'unknown' },
+		{ code: 0xa3, type: 'unknown' },
+		{ code: 0xa4, type: 'unknown' },
+		{ code: 0xa5, type: 'unknown' },
+		{ code: 0xa6, type: 'unknown' },		
+	],
+
+	MSG_CMD: [
+		{ code: 0x79, length: 5, category: 'light', cmd: 'getStatus'},					// 조명 상태 요청
+		{ code: 0x7a, length: 5, category: 'light', cmd: 'control'},					// 조명 제어 요청
+		{ code: 0x7c, length: 8, category: 'heat', cmd: 'getStatus'},					// 난방 상태 요청
+		{ code: 0x7d, length: 8, category: 'heat', cmd: 'setMode'},						// 난방 제어 요청
+		{ code: 0x7f, length: 8, category: 'heat', cmd: 'setTemperature'},				// 난방 온도 설정 요청
+		{ code: 0x4e, length: 6, category: 'vent', cmd: 'getStatus'},					// 환기 상태 요청
+		{ code: 0x4f, length: 6, category: 'vent', cmd: 'control'},						// 환기 제어 요청
+		{ code: 0x41, length: 4, category: 'entrance', cmd: 'getButtonStatus'},			// 현관 버튼 상태 요청
+		{ code: 0x52, length: 4, category: 'entrance', cmd: 'getAllLightStatus'},		// 일괄 조명 상태 요청
+		{ code: 0x53, length: 4, category: 'entrance', cmd: 'controlAllLight'},			// 일괄 조명 상태 요청
+		{ code: 0x54, length: 4, category: 'entrance', cmd: 'getAllLightButtonStatus'},	// 일괄 조명 버튼 상태 수신
+		{ code: 0x55, length: 4, category: 'entrance', cmd: 'getGasButtonStatus'},		// 가스 잠금 버튼 상태 수신
+		{ code: 0x56, length: 4, category: 'entrance', cmd: 'getGasButtonStatus'},		// 가스 잠금 버튼 상태 수신
+		{ code: 0x2f, length: 4, category: 'entrance', cmd: 'getElevatorButtonStatus'},	// 엘리베이터 버튼 상태 수신
+		{ code: 0x41, length: 4, category: 'gas', cmd: 'getGasValveStatus'},			// 가스밸브 상태 요청
+		{ code: 0x78, length: 4, category: 'gas', cmd: 'lockGasValve'},					// 가스밸브 잠금 요청
+	],
 
 	// 기기별 상태 및 제어 코드(HEX)
 	DEVICE_STATE: [
@@ -250,16 +284,16 @@ var filterList = [
 	"b07c01011819ff32",
 	"ac79000154",
 	"b079210068",
-	"b00c01003da15a007b",
-	"a25a0078a35a0079",
-	"a45a007ea5410064",
+	"b00c01003d",
+	"a25a0078",
+	"a45a007e",
 	"ae7c040000000056",
 	"b07c04011819ff37",
 	"cc0c010041",
 	"ae7c050000000057",
 	"b07c05011818ff37",
 	"cc0b0300030047",
-	"b00b01003aa15a007b",
+	"b00b01003a",
 	"ae7c010000000053",
 	"b07921026a",
 ];
@@ -584,6 +618,23 @@ app.put('/' + CONST.TOPIC_PRFIX + '/:id/:property/:value', function (req, res) {
 	try {
 		setValue(req.params.id, req.params.property, req.params.value);
 		result.message = "Success"//getPropertyStatus(req.params.id, req.params.property);
+		res.status(200);
+	} catch (e) {
+		result.message = e.toString();
+		res.status(400);
+	}
+	result.status = res.statusCode;
+	log('[result] : ' + JSON.stringify(result));
+	res.send(result);
+});
+
+// serial로 message 전달
+app.put('/' + CONST.TOPIC_PRFIX + '/serial/:cmd', function (req, res) {
+	log('[' + req.method + '] ' + req.url);
+	var result = {};
+	try {
+		sendCmd(req.params.cmd);
+		result.message = "Success"
 		res.status(200);
 	} catch (e) {
 		result.message = e.toString();
