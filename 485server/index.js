@@ -231,9 +231,49 @@ port.open((err) => {
 // 홈넷에서 SerialPort로 상태 정보 수신
 var packets = [];
 
+
+var filterList = [
+	"cc4101000c",
+	"b041010070",
+	"a15a007b",
+	"a25a0078",
+	"a35a0079",
+	"a45a007e",
+	"a5410064",
+	"b0410071",
+	"a6410067",
+	"ab41006a",
+	"b0410170",
+	"ac41006d",
+	"ae7c030000000051",
+	"b07c03011819ff30",
+	"b07c01011819ff32",
+	"ac79000154",
+	"b079210068",
+	"b00c01003da15a007b",
+	"a25a0078a35a0079",
+	"a45a007ea5410064",
+	"ae7c040000000056",
+	"b07c04011819ff37",
+	"cc0c010041",
+	"ae7c050000000057",
+	"b07c05011818ff37",
+	"cc0b0300030047",
+	"b00b01003aa15a007b",
+	"ae7c010000000053",
+	"b07921026a",
+];
+
+
 parser.on('data', function (data) {
 	//console.log('Receive interval: ', (new Date().getTime())-lastReceive, 'ms ->', data.toString('hex'));
 	lastReceive = new Date().getTime();
+
+	if (filterList.includes(data.toString('hex'))) {
+		//log("Filtered Packet : ", data.toString('hex'))
+	} else {
+		log("Not filtered Packet : ", data.toString('hex'))
+	}
 
 	if(packets[data]) {
 		packets[data]++;
@@ -320,6 +360,8 @@ var updateStatus = (obj) => {
 	});
 }
 
+var STInfo = undefined;
+
 function updateSTDeviceProperty(deviceId, subId, propertyName, propertyValue) {
 	var device = deviceStatus.find(o => (o.id === deviceId) && (o.subId === subId));
 	if (!device) {
@@ -334,6 +376,37 @@ function updateSTDeviceProperty(deviceId, subId, propertyName, propertyValue) {
 	device.property[propertyName] = propertyValue;
 
 	// TODO : Send to ST
+	// {
+	// 	"app_url":"https://graph-ap02-apnortheast2.api.smartthings.com:443/api/smartapps/installations/",
+	// 	"app_id":"cd8a522f-40ad-4708-8a9d-c268f3167e8e",
+	// 	"access_token":"695e0875-aa0f-4f41-af29-ddd3c604f189"
+	// }
+	if (STInfo) {
+		let req_data = JSON.stringify({
+			data: 'hahaha'
+		});
+		const req = https.get(STInfo.app_url + '/list' + '?access_token=' + STInfo.access_token, (resp) => {
+			let data = '';
+	
+			// A chunk of data has been recieved.
+			resp.on('data', (chunk) => {
+				data += chunk;
+			});
+	
+			// The whole response has been received. Print out the result.
+			resp.on('end', () => {
+				console.log(JSON.parse(data).explanation);
+			});
+	
+		});
+		
+		req.on("error", (err) => {
+			console.log("Error: " + err.message);
+		});
+
+		req.write(req_data);
+		req.end();
+	}
 }
 
 
@@ -420,6 +493,23 @@ setInterval(commandProc, 20);
 //queue.push(CONST.DEVICE_COMMAND[1]);
 //queue.push(CONST.DEVICE_COMMAND[6]);
 
+//////////////////////////////////////////////////////////////////////////////////////
+// Test
+
+function sendCmd(cmdHex)
+{
+	var buf = Buffer.alloc(cmdHex.length / 2, cmdHex, 'hex')
+	port.write(buf, (err) => {if(err)  return log('[Serial] Send Error: ', err.message); });
+	log('[Serial] Send cmd : ', buf.toString('hex'));
+}
+
+setTimeout(() => {
+	sendCmd('b008010039a15a007b');
+}, 5000);
+setTimeout(() => {
+	sendCmd('b008010138a15a007b');
+}, 6000);
+
 
 
 //////////////////////////////////////////////////////////////////////////////////////
@@ -499,6 +589,34 @@ app.put('/' + CONST.TOPIC_PRFIX + '/:id/:property/:value', function (req, res) {
 		result.message = e.toString();
 		res.status(400);
 	}
+	result.status = res.statusCode;
+	log('[result] : ' + JSON.stringify(result));
+	res.send(result);
+});
+
+app.post('/' + CONST.TOPIC_PRFIX + '/smartthings/initialize', function (req, res) {
+	log('[' + req.method + '] ' + req.url);
+	log('body : ' + JSON.stringify(req.body));
+	// body : 
+	// {
+	// 	"app_url":"https://graph-ap02-apnortheast2.api.smartthings.com:443/api/smartapps/installations/",
+	// 	"app_id":"cd8a522f-40ad-4708-8a9d-c268f3167e8e",
+	// 	"access_token":"695e0875-aa0f-4f41-af29-ddd3c604f189"
+	// }
+	STInfo = req.body;
+
+	var result = {};
+	// try {
+	// 	setValue(req.params.id, req.params.property, req.params.value);
+	// 	result.message = "Success"//getPropertyStatus(req.params.id, req.params.property);
+	// 	res.status(200);
+	// } catch (e) {
+	// 	result.message = e.toString();
+	// 	res.status(400);
+	// }
+
+	res.status(200);
+
 	result.status = res.statusCode;
 	log('[result] : ' + JSON.stringify(result));
 	res.send(result);
