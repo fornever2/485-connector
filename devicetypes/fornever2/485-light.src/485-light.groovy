@@ -1,5 +1,5 @@
 /**
- *  485-switch
+ *  485-light
  *
  *  Copyright 2020 fornever2@gmail.com
  *
@@ -14,7 +14,8 @@
  */
 metadata {
 	definition (name: "485-light", namespace: "fornever2", author: "fornever2@gmail.com", cstHandler: true) {
-		capability "Switch"
+        capability "Light"
+        capability "Switch"
 		capability "Refresh"
 		capability "Actuator"
 		capability "Sensor"
@@ -28,6 +29,10 @@ metadata {
 	tiles {
 		// TODO: define your main and details tiles here
 	}
+}
+
+def installed() {
+	log.debug "installed()"
 }
 
 // parse events into attributes
@@ -90,6 +95,11 @@ def refreshCallback(physicalgraph.device.HubResponse hubResponse) {
 }
 ////////////////////////////////////////////////////////////////
 
+def init(data) {
+	log.debug "init >> ${data}"
+    //updateDevice(data)
+}
+
 def setUrl(String url){
 	log.debug "URL >> ${url}"
     state.address = url
@@ -100,13 +110,13 @@ def setPath(String path){
     state.path = path
 }
 
-////////////////////////////////////////////////////////////////
-
 def updateDevice(data) {
 	log.debug "updateDevice - ${data}"
 	state.cur_value = data.property.switch
 	sendEvent(name:"switch", value:state.cur_value)
 }
+
+////////////////////////////////////////////////////////////////
 
 def setProperty(String name, String value) {
 	try{    
@@ -134,7 +144,7 @@ def setPropertyCallback(physicalgraph.device.HubResponse hubResponse) {
         msg = parseLanMessage(hubResponse.description)
         log.debug msg.json.message
         if(msg.json.status == 200){
-        	sendEvent(name:"switch", value:state.req_value)
+        	//sendEvent(name:"switch", value:state.req_value)
         }
 	} catch (e) {
         log.error("Exception caught while parsing data: "+e);
