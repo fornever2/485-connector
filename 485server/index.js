@@ -274,7 +274,7 @@ var packets = [];
 
 
 setInterval(() => {
-	log("[Packet] " + JSON.stringify(packets));
+	packets.forEach(packet => log("[Packet] " + packet.key + " : " + packet.value))
 }, 1000);
 
 var filterList = [
