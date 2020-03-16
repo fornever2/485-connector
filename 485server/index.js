@@ -12,11 +12,17 @@ const http = require('http');
 const https = require('https');
 const express = require('express');
 const bodyParser = require('body-parser');
-//const fs = require('fs');
+const fs = require('fs');
+
+var options = {
+	key: fs.readFileSync('ssl/key.pem'),
+	cert: fs.readFileSync('ssl/cert.pem')
+};
 
 var app = express();
 app.use(express.urlencoded());
 app.use(bodyParser.json());
+
 
 
 // 커스텀 파서
@@ -34,7 +40,8 @@ const CONST = {
 	mqttDelay: 1000 * 10,
 
 	// http port
-	httpPort: 8888,
+	httpPort: 8080,
+	httpsPort: 8888,
 
 	// 메시지 Prefix 상수
 	MSG_PREFIX: [0xb0, 0xac, 0xae, 0xc2, 0xad, 0xab, 0xcc, 0xa1, 0xa2, 0xa3, 0xa4, 0xa5, 0xa6],
@@ -107,16 +114,16 @@ const CONST = {
 		// { deviceId: 'Fan', subId: '1', stateHex: Buffer.alloc(6, 'b04e0200007c', 'hex'), power: 'on', speed: 'mid' },
 		// { deviceId: 'Fan', subId: '1', stateHex: Buffer.alloc(6, 'b04e0100007f', 'hex'), power: 'on', speed: 'high' },
 		// 난방
-		{ deviceId: 'Thermo', subId: '1', stateHex: Buffer.alloc(4, 'b07c0101', 'hex'), power: 'heat', setTemp: '', curTemp: '' },	// 거실
-		{ deviceId: 'Thermo', subId: '1', stateHex: Buffer.alloc(4, 'b07c0100', 'hex'), power: 'off', setTemp: '', curTemp: '' },	// 거실
-		{ deviceId: 'Thermo', subId: '2', stateHex: Buffer.alloc(4, 'b07c0201', 'hex'), power: 'heat', setTemp: '', curTemp: '' },
-		{ deviceId: 'Thermo', subId: '2', stateHex: Buffer.alloc(4, 'b07c0200', 'hex'), power: 'off', setTemp: '', curTemp: '' },
-		{ deviceId: 'Thermo', subId: '3', stateHex: Buffer.alloc(4, 'b07c0301', 'hex'), power: 'heat', setTemp: '', curTemp: '' },	// 침실 1
-		{ deviceId: 'Thermo', subId: '3', stateHex: Buffer.alloc(4, 'b07c0300', 'hex'), power: 'off', setTemp: '', curTemp: '' },	// 침실 1
-		{ deviceId: 'Thermo', subId: '4', stateHex: Buffer.alloc(4, 'b07c0401', 'hex'), power: 'heat', setTemp: '', curTemp: '' },	// 침실 2
-		{ deviceId: 'Thermo', subId: '4', stateHex: Buffer.alloc(4, 'b07c0400', 'hex'), power: 'off', setTemp: '', curTemp: '' },	// 침실 2
-		{ deviceId: 'Thermo', subId: '5', stateHex: Buffer.alloc(4, 'b07c0501', 'hex'), power: 'heat', setTemp: '', curTemp: '' },	// 침실 3
-		{ deviceId: 'Thermo', subId: '5', stateHex: Buffer.alloc(4, 'b07c0500', 'hex'), power: 'off', setTemp: '', curTemp: '' }	// 침실 3
+		{ deviceId: 'Thermo', subId: '1', stateHex: Buffer.alloc(4, 'b07c0101', 'hex'), mode: 'heat', setTemp: '', curTemp: '' },	// 거실
+		{ deviceId: 'Thermo', subId: '1', stateHex: Buffer.alloc(4, 'b07c0100', 'hex'), mode: 'off', setTemp: '', curTemp: '' },	// 거실
+		{ deviceId: 'Thermo', subId: '2', stateHex: Buffer.alloc(4, 'b07c0201', 'hex'), mode: 'heat', setTemp: '', curTemp: '' },
+		{ deviceId: 'Thermo', subId: '2', stateHex: Buffer.alloc(4, 'b07c0200', 'hex'), mode: 'off', setTemp: '', curTemp: '' },
+		{ deviceId: 'Thermo', subId: '3', stateHex: Buffer.alloc(4, 'b07c0301', 'hex'), mode: 'heat', setTemp: '', curTemp: '' },	// 침실 1
+		{ deviceId: 'Thermo', subId: '3', stateHex: Buffer.alloc(4, 'b07c0300', 'hex'), mode: 'off', setTemp: '', curTemp: '' },	// 침실 1
+		{ deviceId: 'Thermo', subId: '4', stateHex: Buffer.alloc(4, 'b07c0401', 'hex'), mode: 'heat', setTemp: '', curTemp: '' },	// 침실 2
+		{ deviceId: 'Thermo', subId: '4', stateHex: Buffer.alloc(4, 'b07c0400', 'hex'), mode: 'off', setTemp: '', curTemp: '' },	// 침실 2
+		{ deviceId: 'Thermo', subId: '5', stateHex: Buffer.alloc(4, 'b07c0501', 'hex'), mode: 'heat', setTemp: '', curTemp: '' },	// 침실 3
+		{ deviceId: 'Thermo', subId: '5', stateHex: Buffer.alloc(4, 'b07c0500', 'hex'), mode: 'off', setTemp: '', curTemp: '' }	// 침실 3
 	],
 
 	DEVICE_COMMAND: [
@@ -144,16 +151,16 @@ const CONST = {
 		// { deviceId: 'Fan', subId: '1', commandHex: Buffer.alloc(6, 'c24f0200000f', 'hex'), speed: 'medium' }, //중(켜짐)
 		// { deviceId: 'Fan', subId: '1', commandHex: Buffer.alloc(6, 'c24f0100000c', 'hex'), speed: 'high' }, //강(켜짐)
 		// 난방
-		{ deviceId: 'Thermo', subId: '1', commandHex: Buffer.alloc(8, 'ae7d010100000053', 'hex'), power: 'heat' }, // 온도조절기1-on
-		{ deviceId: 'Thermo', subId: '1', commandHex: Buffer.alloc(8, 'ae7d010000000052', 'hex'), power: 'off' }, // 온도조절기1-off
-		{ deviceId: 'Thermo', subId: '2', commandHex: Buffer.alloc(8, 'ae7d020100000050', 'hex'), power: 'heat' },
-		{ deviceId: 'Thermo', subId: '2', commandHex: Buffer.alloc(8, 'ae7d020000000051', 'hex'), power: 'off' },
-		{ deviceId: 'Thermo', subId: '3', commandHex: Buffer.alloc(8, 'ae7d030100000051', 'hex'), power: 'heat' },
-		{ deviceId: 'Thermo', subId: '3', commandHex: Buffer.alloc(8, 'ae7d030000000050', 'hex'), power: 'off' },
-		{ deviceId: 'Thermo', subId: '4', commandHex: Buffer.alloc(8, 'ae7d040100000056', 'hex'), power: 'heat' },
-		{ deviceId: 'Thermo', subId: '4', commandHex: Buffer.alloc(8, 'ae7d040000000057', 'hex'), power: 'off' },
-		{ deviceId: 'Thermo', subId: '5', commandHex: Buffer.alloc(8, 'ae7d050100000057', 'hex'), power: 'heat' },
-		{ deviceId: 'Thermo', subId: '5', commandHex: Buffer.alloc(8, 'ae7d050000000056', 'hex'), power: 'off' },
+		{ deviceId: 'Thermo', subId: '1', commandHex: Buffer.alloc(8, 'ae7d010100000053', 'hex'), mode: 'heat' }, // 온도조절기1-on
+		{ deviceId: 'Thermo', subId: '1', commandHex: Buffer.alloc(8, 'ae7d010000000052', 'hex'), mode: 'off' }, // 온도조절기1-off
+		{ deviceId: 'Thermo', subId: '2', commandHex: Buffer.alloc(8, 'ae7d020100000050', 'hex'), mode: 'heat' },
+		{ deviceId: 'Thermo', subId: '2', commandHex: Buffer.alloc(8, 'ae7d020000000051', 'hex'), mode: 'off' },
+		{ deviceId: 'Thermo', subId: '3', commandHex: Buffer.alloc(8, 'ae7d030100000051', 'hex'), mode: 'heat' },
+		{ deviceId: 'Thermo', subId: '3', commandHex: Buffer.alloc(8, 'ae7d030000000050', 'hex'), mode: 'off' },
+		{ deviceId: 'Thermo', subId: '4', commandHex: Buffer.alloc(8, 'ae7d040100000056', 'hex'), mode: 'heat' },
+		{ deviceId: 'Thermo', subId: '4', commandHex: Buffer.alloc(8, 'ae7d040000000057', 'hex'), mode: 'off' },
+		{ deviceId: 'Thermo', subId: '5', commandHex: Buffer.alloc(8, 'ae7d050100000057', 'hex'), mode: 'heat' },
+		{ deviceId: 'Thermo', subId: '5', commandHex: Buffer.alloc(8, 'ae7d050000000056', 'hex'), mode: 'off' },
 		{ deviceId: 'Thermo', subId: '1', commandHex: Buffer.alloc(8, 'ae7f01FF000000FF', 'hex'), setTemp: '' }, // 온도조절기1-온도설정
 		{ deviceId: 'Thermo', subId: '2', commandHex: Buffer.alloc(8, 'ae7f02FF000000FF', 'hex'), setTemp: '' },
 		{ deviceId: 'Thermo', subId: '3', commandHex: Buffer.alloc(8, 'ae7f03FF000000FF', 'hex'), setTemp: '' },
@@ -306,7 +313,7 @@ parser.on('data', function (data) {
 	if (filterList.includes(data.toString('hex'))) {
 		//log("Filtered Packet : ", data.toString('hex'))
 	} else {
-		log("Not filtered Packet : ", data.toString('hex'))
+		//log("Not filtered Packet : ", data.toString('hex'))
 	}
 
 	if(packets[data]) {
@@ -395,9 +402,24 @@ var updateStatus = (obj) => {
 }
 
 var STInfo = undefined;
+function loadSTInfoFromFile() {
+	if (!STInfo) {
+		log('Reading accessToken from file...')
+		try {
+			STInfo = JSON.parse(fs.readFileSync('STInfo', 'utf8'))
+		} catch (e) {
+			STInfo = undefined;
+		}
+	}
+	return STInfo;
+}
+
+
+log(loadSTInfoFromFile());
+
 
 function updateSTDeviceProperty(deviceId, subId, propertyName, propertyValue) {
-	var device = deviceStatus.find(o => (o.id === deviceId) && (o.subId === subId));
+	var device = deviceStatus.find(o => (o.id === deviceId + subId));
 	if (!device) {
 		var len = deviceStatus.push({
 			type: deviceId,
@@ -415,30 +437,31 @@ function updateSTDeviceProperty(deviceId, subId, propertyName, propertyValue) {
 	// 	"app_id":"cd8a522f-40ad-4708-8a9d-c268f3167e8e",
 	// 	"access_token":"695e0875-aa0f-4f41-af29-ddd3c604f189"
 	// }
+
 	if (STInfo) {
-		let req_data = JSON.stringify({
-			data: 'hahaha'
-		});
-		const req = https.get(STInfo.app_url + '/list' + '?access_token=' + STInfo.access_token, (resp) => {
+		log("[ST] sending to ST : " + JSON.stringify(device));
+		const url = new URL(STInfo.app_url + STInfo.app_id + '/update' + '?access_token=' + STInfo.access_token);
+		const options = {
+			method: 'POST'
+		};
+		log('url : ' + url.toString());
+		log('post options : ' + JSON.stringify(options));
+
+		const req = https.request(url, options, (resp) => {
 			let data = '';
-	
 			// A chunk of data has been recieved.
 			resp.on('data', (chunk) => {
 				data += chunk;
 			});
-	
 			// The whole response has been received. Print out the result.
 			resp.on('end', () => {
-				console.log(JSON.parse(data).explanation);
+				log('end - ' + data);
 			});
-	
 		});
-		
 		req.on("error", (err) => {
-			console.log("Error: " + err.message);
+			log("Error: " + err.message);
 		});
-
-		req.write(req_data);
+		req.write(JSON.stringify(device));
 		req.end();
 	}
 }
@@ -537,19 +560,14 @@ function sendCmd(cmdHex)
 	log('[Serial] Send cmd : ', buf.toString('hex'));
 }
 
-setTimeout(() => {
-	sendCmd('b008010039a15a007b');
-}, 5000);
-setTimeout(() => {
-	sendCmd('b008010138a15a007b');
-}, 6000);
-
-
-
 //////////////////////////////////////////////////////////////////////////////////////
 // http를 통한 명령 전달
+
 http.createServer(app).listen(CONST.httpPort, function () {
-	console.log("485server http server listening on port " + CONST.httpPort);
+	log("485server http server listening on port " + CONST.httpPort);
+});
+https.createServer(options, app).listen(CONST.https_port, function(){
+	log("485server https server listening on port " + CONST.httpsPort);
 });
 
 // 상태 Topic (/homenet/${deviceId}${subId}/${property}/state/ = ${value})
@@ -655,6 +673,8 @@ app.post('/' + CONST.TOPIC_PRFIX + '/smartthings/initialize', function (req, res
 	// 	"access_token":"695e0875-aa0f-4f41-af29-ddd3c604f189"
 	// }
 	STInfo = req.body;
+	log('Writing to STInfo file - ' + JSON.stringify(STInfo));
+	fs.writeFileSync('STInfo', JSON.stringify(STInfo));
 
 	var result = {};
 	// try {
@@ -674,6 +694,8 @@ app.post('/' + CONST.TOPIC_PRFIX + '/smartthings/initialize', function (req, res
 });
 
 function getDeviceStatus(id) {
+	log(JSON.stringify(deviceStatus));
+
 	var deviceFound = deviceStatus.find((e) => e.id === id);
 	if (!deviceFound) {
 		throw new Error('No device found');
@@ -689,6 +711,10 @@ function getPropertyStatus(id, propertyName) {
 	}
 	return property;
 }
+
+
+
+
 
 // var deviceStatus = [
 // 	{
@@ -709,7 +735,7 @@ function getPropertyStatus(id, propertyName) {
 // 		"id": "Thermo1",
 // 		"type": "Thermostat",
 // 		"status": {
-// 			"power": "heat",
+// 			"mode": "heat",
 // 			"setTemp": "25",
 // 			"curTemp": "22"
 // 		}
@@ -718,7 +744,7 @@ function getPropertyStatus(id, propertyName) {
 // 		"id": "Thermo2",
 // 		"type": "Thermostat",
 // 		"status": {
-// 			"power": "off",
+// 			"mode": "off",
 // 			"setTemp": "26",
 // 			"curTemp": "21"
 // 		}
@@ -727,7 +753,7 @@ function getPropertyStatus(id, propertyName) {
 // 		"id": "Thermo3",
 // 		"type": "Thermostat",
 // 		"status": {
-// 			"power": "off",
+// 			"mode": "off",
 // 			"setTemp": "25",
 // 			"curTemp": "22"
 // 		}
@@ -740,7 +766,7 @@ function getPropertyStatus(id, propertyName) {
 // thermostatHeatingSetpoint (number)
 
 //{deviceId: 'Light', subId: '1', stateHex: Buffer.alloc(5,'b079310179','hex'), power1: 'on' , power2: 'off', power3: 'off'}, //상태-01
-//{ deviceId: 'Thermo', subId: '1', stateHex: Buffer.alloc(4, 'b07c0101', 'hex'), power: 'heat', setTemp: '', curTemp: '' },
+//{ deviceId: 'Thermo', subId: '1', stateHex: Buffer.alloc(4, 'b07c0101', 'hex'), mode: 'heat', setTemp: '', curTemp: '' },
 
 // function addDevice(device) {
 // 	console.log(device);
