@@ -394,7 +394,7 @@ var updateStatus = (obj) => {
 		homeStatus[obj.deviceId+obj.subId+stateName] = obj[stateName];
 		var topic = util.format(CONST.STATE_TOPIC, obj.deviceId, obj.subId, stateName);
 		client.publish(topic, obj[stateName], {retain: true});
-		log('[MQTT] Send to HA:', topic, '->', obj[stateName]);
+		log('[MQTT  ] Send to HA:', topic, '->', obj[stateName]);
 
 		// (SmartThings send event)
 		updateSTDeviceProperty(obj.deviceId, obj.subId, stateName, obj[stateName]);
@@ -404,10 +404,10 @@ var updateStatus = (obj) => {
 var STInfo = undefined;
 function loadSTInfoFromFile() {
 	if (!STInfo) {
-		log("[ST] Reading SmartThings info from file 'STInfo'...")
+		log("[ST    ] Reading SmartThings info from file 'STInfo'...")
 		try {
 			let text = fs.readFileSync('STInfo', 'utf8')
-			log('[ST] File content : ' + text)
+			log('[ST    ] File content : ' + text)
 			STInfo = JSON.parse(text)
 		} catch (e) {
 			STInfo = undefined;
@@ -439,7 +439,7 @@ function updateSTDeviceProperty(deviceId, subId, propertyName, propertyValue) {
 	// }
 
 	if (STInfo) {
-		log("[ST] Send to ST : " + JSON.stringify(device));
+		log("[ST    ] Send to ST : " + JSON.stringify(device));
 		const url = new URL(STInfo.app_url + STInfo.app_id + '/update' + '?access_token=' + STInfo.access_token);
 		const options = {
 			method: 'POST'
@@ -452,11 +452,11 @@ function updateSTDeviceProperty(deviceId, subId, propertyName, propertyValue) {
 			});
 			// The whole response has been received. Print out the result.
 			resp.on('end', () => {
-				//log('[ST] Send to ST end - ' + data);
+				//log('[ST    ] Send to ST end - ' + data);
 			});
 		});
 		req.on("error", (err) => {
-			log("[ST] Error: " + err.message);
+			log("[ST    ] Error: " + err.message);
 		});
 		req.write(JSON.stringify(device));
 		req.end();
@@ -561,10 +561,10 @@ function sendCmd(cmdHex)
 // http를 통한 명령 전달
 
 http.createServer(app).listen(CONST.httpPort, function () {
-	log("[ST] 485server http server listening on port " + CONST.httpPort);
+	log("[ST    ] 485server http server listening on port " + CONST.httpPort);
 });
 https.createServer(options, app).listen(CONST.https_port, function(){
-	log("[ST] 485server https server listening on port " + CONST.httpsPort);
+	log("[ST    ] 485server https server listening on port " + CONST.httpsPort);
 });
 
 // 상태 Topic (/homenet/${deviceId}${subId}/${property}/state/ = ${value})
