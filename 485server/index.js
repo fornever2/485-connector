@@ -663,6 +663,7 @@ app.put('/' + CONST.TOPIC_PRFIX + '/serial/:cmd', function (req, res) {
 	res.send(result);
 });
 
+// ST에서 smartapp이 설치되어서 초기화 될 때 호출됨. --> STInfo 파일 생성
 app.post('/' + CONST.TOPIC_PRFIX + '/smartthings/initialize', function (req, res) {
 	log('[' + req.method + '] ' + req.url);
 	log('body : ' + JSON.stringify(req.body));
@@ -677,21 +678,28 @@ app.post('/' + CONST.TOPIC_PRFIX + '/smartthings/initialize', function (req, res
 	fs.writeFileSync('STInfo', JSON.stringify(STInfo));
 
 	var result = {};
-	// try {
-	// 	setValue(req.params.id, req.params.property, req.params.value);
-	// 	result.message = "Success"//getPropertyStatus(req.params.id, req.params.property);
-	// 	res.status(200);
-	// } catch (e) {
-	// 	result.message = e.toString();
-	// 	res.status(400);
-	// }
-
 	res.status(200);
-
 	result.status = res.statusCode;
 	log('[result] : ' + JSON.stringify(result));
 	res.send(result);
 });
+
+// ST에서 smartapp이 uninstall 될 때 호출됨. --> STInfo 파일 삭제
+app.post('/' + CONST.TOPIC_PRFIX + '/smartthings/uninstalled', function (req, res) {
+	log('[' + req.method + '] ' + req.url);
+	log('body : ' + JSON.stringify(req.body));
+	log('Deleting STInfo file');
+	fs.unlinkSync('STInfo');
+	STInfo = undefined;
+
+	var result = {};
+	res.status(200);
+	result.status = res.statusCode;
+	log('[result] : ' + JSON.stringify(result));
+	res.send(result);
+});
+
+
 
 function getDeviceStatus(id) {
 	log(JSON.stringify(deviceStatus));
