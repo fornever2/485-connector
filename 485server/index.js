@@ -273,6 +273,10 @@ port.open((err) => {
 var packets = [];
 
 
+setInterval(() => {
+	log("[Packet] " + JSON.stringify(packets));
+}, 1000);
+
 var filterList = [
 	"cc4101000c",
 	"b041010070",
@@ -390,6 +394,7 @@ var updateStatus = (obj) => {
 			var found = queue.find(q => q.deviceId+q.subId === obj.deviceId+obj.subId && q[stateName] === curStatus);
 			if(found != null) return;
 		}
+
 		// 상태 반영 (MQTT publish)
 		homeStatus[obj.deviceId+obj.subId+stateName] = obj[stateName];
 		var topic = util.format(CONST.STATE_TOPIC, obj.deviceId, obj.subId, stateName);
@@ -632,7 +637,7 @@ app.put('/' + CONST.TOPIC_PRFIX + '/:id/:property/:value', function (req, res) {
 	var result = {};
 	try {
 		setValue(req.params.id, req.params.property, req.params.value);
-		result.message = "Success"//getPropertyStatus(req.params.id, req.params.property);
+		result.message = getPropertyStatus(req.params.id, req.params.property);
 		res.status(200);
 	} catch (e) {
 		result.message = e.toString();
@@ -662,17 +667,16 @@ app.put('/' + CONST.TOPIC_PRFIX + '/serial/:cmd', function (req, res) {
 
 // ST에서 smartapp이 설치되어서 초기화 될 때 호출됨. --> STInfo 파일 생성
 app.post('/' + CONST.TOPIC_PRFIX + '/smartthings/initialize', function (req, res) {
-	log('[' + req.method + '] ' + req.url);
-	log('body : ' + JSON.stringify(req.body));
+	log('[' + req.method + '] ' + req.url + ', body : ' + JSON.stringify(req.body));
+	log('[ST    ] Writing to STInfo file');
+	fs.writeFileSync('STInfo', JSON.stringify(STInfo));
+	STInfo = req.body;
 	// body : 
 	// {
 	// 	"app_url":"https://graph-ap02-apnortheast2.api.smartthings.com:443/api/smartapps/installations/",
 	// 	"app_id":"cd8a522f-40ad-4708-8a9d-c268f3167e8e",
 	// 	"access_token":"695e0875-aa0f-4f41-af29-ddd3c604f189"
-	// }
-	STInfo = req.body;
-	log('Writing to STInfo file - ' + JSON.stringify(STInfo));
-	fs.writeFileSync('STInfo', JSON.stringify(STInfo));
+	// }	
 
 	var result = {};
 	res.status(200);
@@ -683,9 +687,8 @@ app.post('/' + CONST.TOPIC_PRFIX + '/smartthings/initialize', function (req, res
 
 // ST에서 smartapp이 uninstall 될 때 호출됨. --> STInfo 파일 삭제
 app.post('/' + CONST.TOPIC_PRFIX + '/smartthings/uninstalled', function (req, res) {
-	log('[' + req.method + '] ' + req.url);
-	log('body : ' + JSON.stringify(req.body));
-	log('Deleting STInfo file');
+	log('[' + req.method + '] ' + req.url + ', body : ' + JSON.stringify(req.body));
+	log('[ST    ] Deleting STInfo file');
 	fs.unlinkSync('STInfo');
 	STInfo = undefined;
 
@@ -716,9 +719,6 @@ function getPropertyStatus(id, propertyName) {
 	}
 	return property;
 }
-
-
-
 
 
 // var deviceStatus = [
