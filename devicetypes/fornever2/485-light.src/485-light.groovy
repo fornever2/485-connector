@@ -52,12 +52,15 @@ def off() {
 
 def refresh() {
 	log.debug "Executing 'refresh'"
+    
+    log.debug "apiServerUrl: ${apiServerUrl("/my/path")}"
+    
     // TODO: handle 'refresh' command
     try{
 		log.debug "Try to get data from ${state.address}"
         def options = [
             "method": "GET",
-            "path": state.path + "/" + name,
+            "path": state.path,
             "headers": [
                 "HOST": state.address,
                 "Content-Type": "application/json"
@@ -78,12 +81,11 @@ def refreshCallback(physicalgraph.device.HubResponse hubResponse) {
     try {
         msg = parseLanMessage(hubResponse.description)
         log.debug msg.json.message
-        state.cur_value = msg.json.message.switch
         if(msg.json.status == 200){
-        	sendEvent(name:"switch", value:state.cur_value)
+        	updateDevice(msg.json.message)
         }
 	} catch (e) {
-        log.error("Exception caught while parsing data: "+e);
+        log.error("Exception caught while parsing data: "+e)
     }
 }
 ////////////////////////////////////////////////////////////////
@@ -100,11 +102,14 @@ def setPath(String path){
 
 ////////////////////////////////////////////////////////////////
 
+def updateDevice(data) {
+	log.debug "updateDevice - ${data}"
+	state.cur_value = data.property.switch
+	sendEvent(name:"switch", value:state.cur_value)
+}
+
 def setProperty(String name, String value) {
-	try{        
-    	//log.debug "getCallBackAddress() : ${getCallBackAddress()}"
-    	//log.debug "getHostAddress() : ${getHostAddress()}"
-    
+	try{    
 		log.debug "Try to set data to ${state.address}"
         def options = [
             "method": "PUT",
@@ -140,6 +145,7 @@ def setPropertyCallback(physicalgraph.device.HubResponse hubResponse) {
 
 
 /////////////////////////
+// Not used below
 
 // gets the address of the Hub
 private getCallBackAddress() {
