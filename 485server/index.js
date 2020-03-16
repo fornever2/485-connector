@@ -394,7 +394,7 @@ var updateStatus = (obj) => {
 		homeStatus[obj.deviceId+obj.subId+stateName] = obj[stateName];
 		var topic = util.format(CONST.STATE_TOPIC, obj.deviceId, obj.subId, stateName);
 		client.publish(topic, obj[stateName], {retain: true});
-		log('[MQTT  ] Send to HA:', topic, '->', obj[stateName]);
+		log('[MQTT  ] Send to HA :', topic, '->', obj[stateName]);
 
 		// (SmartThings send event)
 		updateSTDeviceProperty(obj.deviceId, obj.subId, stateName, obj[stateName]);
@@ -541,7 +541,7 @@ const commandProc = () => {
 	queue.push(obj);
 }
 
-setTimeout(() => {mqttReady=true; log('MQTT Ready...')}, CONST.mqttDelay);
+setTimeout(() => {mqttReady=true; log('[MQTT  ] MQTT Ready...')}, CONST.mqttDelay);
 setInterval(commandProc, 20);
 
 //queue.push(CONST.DEVICE_COMMAND[1]);
