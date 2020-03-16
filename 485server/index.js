@@ -191,6 +191,7 @@ function CustomParser(options) {
 
 CustomParser.prototype._transform = function (chunk, encoding, done) {
 	var start = 0;
+	//log('chunk : ' + chunk.toString('hex'))
 	for (var i = 0; i < chunk.length; i++) {
 		if (CONST.MSG_PREFIX.includes(chunk[i])) {			// 청크에 구분자(MSG_PREFIX)가 있으면
 			this._queueChunk.push(chunk.slice(start, i));	// 구분자 앞부분을 큐에 저장하고
@@ -270,12 +271,13 @@ port.open((err) => {
 
 //////////////////////////////////////////////////////////////////////////////////////
 // 홈넷에서 SerialPort로 상태 정보 수신
-var packets = [];
+var packets = {};
 
 
-setInterval(() => {
-	packets.forEach(packet => log("[Packet] " + packet.key + " : " + packet.value))
-}, 1000);
+// setInterval(() => {
+// 	log("packets info -----------------");
+// 	inspect(packets);
+// }, 5000);
 
 var filterList = [
 	"cc4101000c",
@@ -309,23 +311,32 @@ var filterList = [
 	"b07921026a",
 ];
 
+const inspect = obj => {
+	for (const prop in obj) {
+		if (obj.hasOwnProperty(prop)) {
+			log(`${prop}: ${obj[prop]}`)
+		}
+	}
+}
+
 
 parser.on('data', function (data) {
 	//console.log('Receive interval: ', (new Date().getTime())-lastReceive, 'ms ->', data.toString('hex'));
 	lastReceive = new Date().getTime();
+	let packet = data.toString('hex');
 
-	if (filterList.includes(data.toString('hex'))) {
-		//log("Filtered Packet : ", data.toString('hex'))
+	if (filterList.includes(packet)) {
+		//log("Filtered Packet : ", packet)
 	} else {
-		//log("Not filtered Packet : ", data.toString('hex'))
+		//log("Not filtered Packet : ", packet)
 	}
 
-	if(packets[data]) {
-		packets[data]++;
+	if(packets[packet]) {
+		packets[packet]++;
 	} else {
-		packets[data] = 1;
+		packets[packet] = 1;
 		// 최초로 발생한 패킷만 출력
-		log("[Serial] New packet : ", data.toString('hex'))
+		log("[Serial] New packet : ", packet)
 	}
 
 	// 첫번째 바이트가 'b0'이면 응답 메시지
@@ -699,7 +710,27 @@ app.post('/' + CONST.TOPIC_PRFIX + '/smartthings/uninstalled', function (req, re
 	res.send(result);
 });
 
-
+app.get('/packets', function (req, res) {
+	log('[' + req.method + '] ' + req.url);
+	var result = {};
+	try {
+		var json = [];
+		for (const packet in packets) {
+			if (packets.hasOwnProperty(packet)) {				
+				var item = { name: packet, count: packets[packet] };
+				json.push(item);
+			}
+		}
+		result.message = json;
+		res.status(200);
+	} catch (e) {
+		result.message = e.toString();
+		res.status(400);
+	}
+	result.status = res.statusCode;
+	log('[result] : ' + JSON.stringify(result));
+	res.send(result);
+});
 
 function getDeviceStatus(id) {
 	log(JSON.stringify(deviceStatus));
