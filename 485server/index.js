@@ -14,15 +14,9 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const fs = require('fs');
 
-var options = {
-	key: fs.readFileSync('ssl/key.pem'),
-	cert: fs.readFileSync('ssl/cert.pem')
-};
-
 var app = express();
 app.use(express.urlencoded());
 app.use(bodyParser.json());
-
 
 
 // 커스텀 파서
@@ -41,7 +35,6 @@ const CONST = {
 
 	// http port
 	httpPort: 8080,
-	httpsPort: 8888,
 
 	// 메시지 Prefix 상수
 	MSG_PREFIX: [0xb0, 0xac, 0xae, 0xc2, 0xad, 0xab, 0xcc, 0xa1, 0xa2, 0xa3, 0xa4, 0xa5, 0xa6],
@@ -578,9 +571,6 @@ function sendCmd(cmdHex)
 
 http.createServer(app).listen(CONST.httpPort, function () {
 	log("[ST    ] 485server http server listening on port " + CONST.httpPort);
-});
-https.createServer(options, app).listen(CONST.https_port, function(){
-	log("[ST    ] 485server https server listening on port " + CONST.httpsPort);
 });
 
 // 상태 Topic (/homenet/${deviceId}${subId}/${property}/state/ = ${value})
