@@ -416,7 +416,7 @@ function loadSTInfoFromFile() {
 		log("[ST    ] Reading SmartThings info from file 'STInfo'...")
 		try {
 			let text = fs.readFileSync('STInfo', 'utf8')
-			log('[ST    ] File content : ' + text)
+			//log('[ST    ] File content : ' + text)
 			STInfo = JSON.parse(text)
 		} catch (e) {
 			STInfo = undefined;
@@ -719,6 +719,19 @@ app.get('/packets', function (req, res) {
 	}
 	result.status = res.statusCode;
 	log('[result] : ' + JSON.stringify(result));
+	res.send(result);
+});
+
+app.get('/log', function (req, res) {
+	log('[' + req.method + '] ' + req.url);
+	var result = "<pre>";
+	try {
+		result += fs.readFileSync('log', 'utf8')
+	} catch (e) {
+		result += e
+	}
+	result += "</pre>";
+	log('[result] : ' + result);
 	res.send(result);
 });
 

@@ -105,3 +105,4 @@ dist
 
 # 485server SmartThings info files
 485server/STInfo
+485server/log
