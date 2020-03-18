@@ -185,17 +185,19 @@ def setPath(String path){
 
 def updateDevice(data) {
 	log.debug "updateDevice - ${data}"
-    def mode = data.property.mode ? data.property.mode : "off"
-    def setTemp = data.property.setTemp ? data.property.setTemp : 0
-    def curTemp = data.property.curTemp ? data.property.curTemp : 0
-    
-    sendEvent(name: "thermostatMode", value: mode)
-    sendEvent(name: "heatingSetpoint", value: setTemp)
-    sendEvent(name: "temperature", value: curTemp)
-    if (mode == "off") {
-    	sendEvent(name:"switch", value:"off")
-    } else {
-    	sendEvent(name:"switch", value:"on")
+    if (data.property.mode) {
+    	sendEvent(name: "thermostatMode", value: data.property.mode)
+    	if (data.property.mode == "off") {
+    		sendEvent(name:"switch", value:"off")
+    	} else {
+	    	sendEvent(name:"switch", value:"on")
+    	}
+    }    
+    if (data.property.setTemp) {
+    	sendEvent(name: "heatingSetpoint", value: data.property.setTemp)
+    }
+    if (data.property.curTemp) {
+    	sendEvent(name: "temperature", value: data.property.curTemp)
     }
 }
 
