@@ -78,88 +78,88 @@ const CONST = {
 	// 기기별 상태 및 제어 코드(HEX)
 	DEVICE_STATE: [
 		// 전등 갯수가 3개인 경우
-		//{deviceId: 'Light1', type: 'Light', stateHex: Buffer.alloc(5,'b079310078','hex'), power1: 'off', power2: 'off', power3: 'off'}, //상태-00
-		//{deviceId: 'Light1', type: 'Light', stateHex: Buffer.alloc(5,'b079310179','hex'), power1: 'on' , power2: 'off', power3: 'off'}, //상태-01
-		//{deviceId: 'Light1', type: 'Light', stateHex: Buffer.alloc(5,'b07931027a','hex'), power1: 'off', power2: 'on' , power3: 'off'}, //상태-02
-		//{deviceId: 'Light1', type: 'Light', stateHex: Buffer.alloc(5,'b07931037b','hex'), power1: 'on' , power2: 'on' , power3: 'off'}, //상태-03
-		//{deviceId: 'Light1', type: 'Light', stateHex: Buffer.alloc(5,'b07931047c','hex'), power1: 'off', power2: 'off', power3: 'on' }, //상태-04
-		//{deviceId: 'Light1', type: 'Light', stateHex: Buffer.alloc(5,'b07931057d','hex'), power1: 'on' , power2: 'off', power3: 'on' }, //상태-05
-		//{deviceId: 'Light1', type: 'Light', stateHex: Buffer.alloc(5,'b07931067e','hex'), power1: 'off', power2: 'on' , power3: 'on' }, //상태-06
-		//{deviceId: 'Light1', type: 'Light', stateHex: Buffer.alloc(5,'b07931077f','hex'), power1: 'on' , power2: 'on' , power3: 'on' }, //상태-07
+		//{deviceId: 'Light1', type: 'Light', stateHex: Buffer.alloc(5,'b079310078','hex'), property: { power1: 'off', power2: 'off', power3: 'off' } }, //상태-00
+		//{deviceId: 'Light1', type: 'Light', stateHex: Buffer.alloc(5,'b079310179','hex'), property: { power1: 'on' , power2: 'off', power3: 'off' } }, //상태-01
+		//{deviceId: 'Light1', type: 'Light', stateHex: Buffer.alloc(5,'b07931027a','hex'), property: { power1: 'off', power2: 'on' , power3: 'off' } }, //상태-02
+		//{deviceId: 'Light1', type: 'Light', stateHex: Buffer.alloc(5,'b07931037b','hex'), property: { power1: 'on' , power2: 'on' , power3: 'off' } }, //상태-03
+		//{deviceId: 'Light1', type: 'Light', stateHex: Buffer.alloc(5,'b07931047c','hex'), property: { power1: 'off', power2: 'off', power3: 'on'  } }, //상태-04
+		//{deviceId: 'Light1', type: 'Light', stateHex: Buffer.alloc(5,'b07931057d','hex'), property: { power1: 'on' , power2: 'off', power3: 'on'  } }, //상태-05
+		//{deviceId: 'Light1', type: 'Light', stateHex: Buffer.alloc(5,'b07931067e','hex'), property: { power1: 'off', power2: 'on' , power3: 'on'  } }, //상태-06
+		//{deviceId: 'Light1', type: 'Light', stateHex: Buffer.alloc(5,'b07931077f','hex'), property: { power1: 'on' , power2: 'on' , power3: 'on'  } }, //상태-07
 		// 전등 갯수가 2개인경우
-		// { deviceId: 'Light1', type: 'Light', stateHex: Buffer.alloc(5, 'b079210068', 'hex'), power1: 'off', power2: 'off' }, //상태-00
-		// { deviceId: 'Light1', type: 'Light', stateHex: Buffer.alloc(5, 'b079210169', 'hex'), power1: 'on', power2: 'off' }, //상태-01
-		// { deviceId: 'Light1', type: 'Light', stateHex: Buffer.alloc(5, 'b07921026a', 'hex'), power1: 'off', power2: 'on' }, //상태-02
-		// { deviceId: 'Light1', type: 'Light', stateHex: Buffer.alloc(5, 'b07921036b', 'hex'), power1: 'on', power2: 'on' }, //상태-03
+		// { deviceId: 'Light1', type: 'Light', stateHex: Buffer.alloc(5, 'b079210068', 'hex'), property: { power1: 'off', power2: 'off'  } }, //상태-00
+		// { deviceId: 'Light1', type: 'Light', stateHex: Buffer.alloc(5, 'b079210169', 'hex'), property: { power1: 'on', power2: 'off'  } }, //상태-01
+		// { deviceId: 'Light1', type: 'Light', stateHex: Buffer.alloc(5, 'b07921026a', 'hex'), property: { power1: 'off', power2: 'on'  } }, //상태-02
+		// { deviceId: 'Light1', type: 'Light', stateHex: Buffer.alloc(5, 'b07921036b', 'hex'), property: { power1: 'on', power2: 'on'  } }, //상태-03
 		// 수정
-		{ deviceId: 'Light1', type: 'Light', stateHex: Buffer.alloc(5, 'b079210068', 'hex'), switch: 'off' }, //상태-00
-		{ deviceId: 'Light2', type: 'Light', stateHex: Buffer.alloc(5, 'b079210068', 'hex'), switch: 'off' }, //상태-00
-		{ deviceId: 'Light1', type: 'Light', stateHex: Buffer.alloc(5, 'b079210169', 'hex'), switch: 'on' }, //상태-01
-		{ deviceId: 'Light2', type: 'Light', stateHex: Buffer.alloc(5, 'b079210169', 'hex'), switch: 'off' }, //상태-01
-		{ deviceId: 'Light1', type: 'Light', stateHex: Buffer.alloc(5, 'b07921026a', 'hex'), switch: 'off' }, //상태-02
-		{ deviceId: 'Light2', type: 'Light', stateHex: Buffer.alloc(5, 'b07921026a', 'hex'), switch: 'on' }, //상태-02
-		{ deviceId: 'Light1', type: 'Light', stateHex: Buffer.alloc(5, 'b07921036b', 'hex'), switch: 'on' }, //상태-03
-		{ deviceId: 'Light2', type: 'Light', stateHex: Buffer.alloc(5, 'b07921036b', 'hex'), switch: 'on' }, //상태-03
+		{ deviceId: 'Light1', type: 'Light', stateHex: Buffer.alloc(5, 'b079210068', 'hex'), property: { switch: 'off'  } }, //상태-00
+		{ deviceId: 'Light2', type: 'Light', stateHex: Buffer.alloc(5, 'b079210068', 'hex'), property: { switch: 'off'  } }, //상태-00
+		{ deviceId: 'Light1', type: 'Light', stateHex: Buffer.alloc(5, 'b079210169', 'hex'), property: { switch: 'on'  } }, //상태-01
+		{ deviceId: 'Light2', type: 'Light', stateHex: Buffer.alloc(5, 'b079210169', 'hex'), property: { switch: 'off'  } }, //상태-01
+		{ deviceId: 'Light1', type: 'Light', stateHex: Buffer.alloc(5, 'b07921026a', 'hex'), property: { switch: 'off'  } }, //상태-02
+		{ deviceId: 'Light2', type: 'Light', stateHex: Buffer.alloc(5, 'b07921026a', 'hex'), property: { switch: 'on'  } }, //상태-02
+		{ deviceId: 'Light1', type: 'Light', stateHex: Buffer.alloc(5, 'b07921036b', 'hex'), property: { switch: 'on'  } }, //상태-03
+		{ deviceId: 'Light2', type: 'Light', stateHex: Buffer.alloc(5, 'b07921036b', 'hex'), property: { switch: 'on'  } }, //상태-03
 		// 환풍기
-		// { deviceId: 'Fan1', type: 'Fan', stateHex: Buffer.alloc(6, 'b04e0300017c', 'hex'), power: 'off', speed: 'low' },
-		// { deviceId: 'Fan1', type: 'Fan', stateHex: Buffer.alloc(6, 'b04e0200017d', 'hex'), power: 'off', speed: 'mid' },
-		// { deviceId: 'Fan1', type: 'Fan', stateHex: Buffer.alloc(6, 'b04e0100017e', 'hex'), power: 'off', speed: 'high' },
-		// { deviceId: 'Fan1', type: 'Fan', stateHex: Buffer.alloc(6, 'b04e0300007d', 'hex'), power: 'on', speed: 'low' },
-		// { deviceId: 'Fan1', type: 'Fan', stateHex: Buffer.alloc(6, 'b04e0200007c', 'hex'), power: 'on', speed: 'mid' },
-		// { deviceId: 'Fan1', type: 'Fan', stateHex: Buffer.alloc(6, 'b04e0100007f', 'hex'), power: 'on', speed: 'high' },
+		// { deviceId: 'Fan1', type: 'Fan', stateHex: Buffer.alloc(6, 'b04e0300017c', 'hex'), property: { power: 'off', speed: 'low'  } },
+		// { deviceId: 'Fan1', type: 'Fan', stateHex: Buffer.alloc(6, 'b04e0200017d', 'hex'), property: { power: 'off', speed: 'mid'  } },
+		// { deviceId: 'Fan1', type: 'Fan', stateHex: Buffer.alloc(6, 'b04e0100017e', 'hex'), property: { power: 'off', speed: 'high'  } },
+		// { deviceId: 'Fan1', type: 'Fan', stateHex: Buffer.alloc(6, 'b04e0300007d', 'hex'), property: { power: 'on', speed: 'low'  } },
+		// { deviceId: 'Fan1', type: 'Fan', stateHex: Buffer.alloc(6, 'b04e0200007c', 'hex'), property: { power: 'on', speed: 'mid'  } },
+		// { deviceId: 'Fan1', type: 'Fan', stateHex: Buffer.alloc(6, 'b04e0100007f', 'hex'), property: { power: 'on', speed: 'high'  } },
 		// 난방
-		{ deviceId: 'Thermo1', type: 'Thermo', stateHex: Buffer.alloc(4, 'b07c0101', 'hex'), mode: 'heat', setTemp: '', curTemp: '' },	// 거실
-		{ deviceId: 'Thermo1', type: 'Thermo', stateHex: Buffer.alloc(4, 'b07c0100', 'hex'), mode: 'off', setTemp: '', curTemp: '' },	// 거실
-		{ deviceId: 'Thermo2', type: 'Thermo', stateHex: Buffer.alloc(4, 'b07c0201', 'hex'), mode: 'heat', setTemp: '', curTemp: '' },
-		{ deviceId: 'Thermo2', type: 'Thermo', stateHex: Buffer.alloc(4, 'b07c0200', 'hex'), mode: 'off', setTemp: '', curTemp: '' },
-		{ deviceId: 'Thermo3', type: 'Thermo', stateHex: Buffer.alloc(4, 'b07c0301', 'hex'), mode: 'heat', setTemp: '', curTemp: '' },	// 침실 1
-		{ deviceId: 'Thermo3', type: 'Thermo', stateHex: Buffer.alloc(4, 'b07c0300', 'hex'), mode: 'off', setTemp: '', curTemp: '' },	// 침실 1
-		{ deviceId: 'Thermo4', type: 'Thermo', stateHex: Buffer.alloc(4, 'b07c0401', 'hex'), mode: 'heat', setTemp: '', curTemp: '' },	// 침실 2
-		{ deviceId: 'Thermo4', type: 'Thermo', stateHex: Buffer.alloc(4, 'b07c0400', 'hex'), mode: 'off', setTemp: '', curTemp: '' },	// 침실 2
-		{ deviceId: 'Thermo5', type: 'Thermo', stateHex: Buffer.alloc(4, 'b07c0501', 'hex'), mode: 'heat', setTemp: '', curTemp: '' },	// 침실 3
-		{ deviceId: 'Thermo5', type: 'Thermo', stateHex: Buffer.alloc(4, 'b07c0500', 'hex'), mode: 'off', setTemp: '', curTemp: '' }	// 침실 3
+		{ deviceId: 'Thermo1', type: 'Thermo', stateHex: Buffer.alloc(4, 'b07c0101', 'hex'), property: { mode: 'heat', setTemp: '', curTemp: ''  } },	// 거실
+		{ deviceId: 'Thermo1', type: 'Thermo', stateHex: Buffer.alloc(4, 'b07c0100', 'hex'), property: { mode: 'off', setTemp: '', curTemp: ''  } },	// 거실
+		{ deviceId: 'Thermo2', type: 'Thermo', stateHex: Buffer.alloc(4, 'b07c0201', 'hex'), property: { mode: 'heat', setTemp: '', curTemp: ''  } },
+		{ deviceId: 'Thermo2', type: 'Thermo', stateHex: Buffer.alloc(4, 'b07c0200', 'hex'), property: { mode: 'off', setTemp: '', curTemp: ''  } },
+		{ deviceId: 'Thermo3', type: 'Thermo', stateHex: Buffer.alloc(4, 'b07c0301', 'hex'), property: { mode: 'heat', setTemp: '', curTemp: '' } },	// 침실 1
+		{ deviceId: 'Thermo3', type: 'Thermo', stateHex: Buffer.alloc(4, 'b07c0300', 'hex'), property: { mode: 'off', setTemp: '', curTemp: '' } },	// 침실 1
+		{ deviceId: 'Thermo4', type: 'Thermo', stateHex: Buffer.alloc(4, 'b07c0401', 'hex'), property: { mode: 'heat', setTemp: '', curTemp: '' } },	// 침실 2
+		{ deviceId: 'Thermo4', type: 'Thermo', stateHex: Buffer.alloc(4, 'b07c0400', 'hex'), property: { mode: 'off', setTemp: '', curTemp: '' } },	// 침실 2
+		{ deviceId: 'Thermo5', type: 'Thermo', stateHex: Buffer.alloc(4, 'b07c0501', 'hex'), property: { mode: 'heat', setTemp: '', curTemp: '' } },	// 침실 3
+		{ deviceId: 'Thermo5', type: 'Thermo', stateHex: Buffer.alloc(4, 'b07c0500', 'hex'), property: { mode: 'off', setTemp: '', curTemp: '' } }	// 침실 3
 	],
 
 	DEVICE_COMMAND: [
 		// 전등 갯수가 3개인 경우
-		//{deviceId: 'Light1', type: 'Light', commandHex: Buffer.alloc(5,'ac7a010057','hex'), power1: 'off'}, //거실1--off
-		//{deviceId: 'Light1', type: 'Light', commandHex: Buffer.alloc(5,'ac7a010156','hex'), power1: 'on' }, //거실1--on
-		//{deviceId: 'Light1', type: 'Light', commandHex: Buffer.alloc(5,'ac7a020054','hex'), power2: 'off'}, //거실2--off
-		//{deviceId: 'Light1', type: 'Light', commandHex: Buffer.alloc(5,'ac7a020155','hex'), power2: 'on' }, //거실2--on
-		//{deviceId: 'Light1', type: 'Light', commandHex: Buffer.alloc(5,'ac7a030055','hex'), power3: 'off'}, //거실3--off
-		//{deviceId: 'Light1', type: 'Light', commandHex: Buffer.alloc(5,'ac7a030154','hex'), power3: 'on' }, //거실3--on
+		//{deviceId: 'Light1', type: 'Light', commandHex: Buffer.alloc(5,'ac7a010057','hex'), property: { power1: 'off'} }, //거실1--off
+		//{deviceId: 'Light1', type: 'Light', commandHex: Buffer.alloc(5,'ac7a010156','hex'), property: { power1: 'on' } }, //거실1--on
+		//{deviceId: 'Light1', type: 'Light', commandHex: Buffer.alloc(5,'ac7a020054','hex'), property: { power2: 'off'} }, //거실2--off
+		//{deviceId: 'Light1', type: 'Light', commandHex: Buffer.alloc(5,'ac7a020155','hex'), property: { power2: 'on' } }, //거실2--on
+		//{deviceId: 'Light1', type: 'Light', commandHex: Buffer.alloc(5,'ac7a030055','hex'), property: { power3: 'off'} }, //거실3--off
+		//{deviceId: 'Light1', type: 'Light', commandHex: Buffer.alloc(5,'ac7a030154','hex'), property: { power3: 'on' } }, //거실3--on
 		// 전등 갯수가 2개인경우
-		// { deviceId: 'Light1', type: 'Light', commandHex: Buffer.alloc(5, 'ac7a010057', 'hex'), power1: 'off' }, //거실1--off
-		// { deviceId: 'Light1', type: 'Light', commandHex: Buffer.alloc(5, 'ac7a010156', 'hex'), power1: 'on' }, //거실1--on
-		// { deviceId: 'Light1', type: 'Light', commandHex: Buffer.alloc(5, 'ac7a020054', 'hex'), power2: 'off' }, //거실2--off
-		// { deviceId: 'Light1', type: 'Light', commandHex: Buffer.alloc(5, 'ac7a020155', 'hex'), power2: 'on' }, //거실2--on
+		// { deviceId: 'Light1', type: 'Light', commandHex: Buffer.alloc(5, 'ac7a010057', 'hex'), property: { power1: 'off' } }, //거실1--off
+		// { deviceId: 'Light1', type: 'Light', commandHex: Buffer.alloc(5, 'ac7a010156', 'hex'), property: { power1: 'on' } }, //거실1--on
+		// { deviceId: 'Light1', type: 'Light', commandHex: Buffer.alloc(5, 'ac7a020054', 'hex'), property: { power2: 'off' } }, //거실2--off
+		// { deviceId: 'Light1', type: 'Light', commandHex: Buffer.alloc(5, 'ac7a020155', 'hex'), property: { power2: 'on' } }, //거실2--on
 		// 수정 - fornever2
-		{ deviceId: 'Light1', type: 'Light', commandHex: Buffer.alloc(5, 'ac7a010057', 'hex'), switch: 'off' }, //거실1--off
-		{ deviceId: 'Light1', type: 'Light', commandHex: Buffer.alloc(5, 'ac7a010156', 'hex'), switch: 'on' }, //거실1--on
-		{ deviceId: 'Light2', type: 'Light', commandHex: Buffer.alloc(5, 'ac7a020054', 'hex'), switch: 'off' }, //거실2--off
-		{ deviceId: 'Light2', type: 'Light', commandHex: Buffer.alloc(5, 'ac7a020155', 'hex'), switch: 'on' }, //거실2--on
+		{ deviceId: 'Light1', type: 'Light', commandHex: Buffer.alloc(5, 'ac7a010057', 'hex'), property: { switch: 'off' } }, //거실1--off
+		{ deviceId: 'Light1', type: 'Light', commandHex: Buffer.alloc(5, 'ac7a010156', 'hex'), property: { switch: 'on' } }, //거실1--on
+		{ deviceId: 'Light2', type: 'Light', commandHex: Buffer.alloc(5, 'ac7a020054', 'hex'), property: { switch: 'off' } }, //거실2--off
+		{ deviceId: 'Light2', type: 'Light', commandHex: Buffer.alloc(5, 'ac7a020155', 'hex'), property: { switch: 'on' } }, //거실2--on
 		// 환풍기
-		// { deviceId: 'Fan1', type: 'Fan', commandHex: Buffer.alloc(6, 'c24f05000008', 'hex'), power: 'on' }, //켜짐
-		// { deviceId: 'Fan1', type: 'Fan', commandHex: Buffer.alloc(6, 'c24f0600000b', 'hex'), power: 'off' }, //꺼짐
-		// { deviceId: 'Fan1', type: 'Fan', commandHex: Buffer.alloc(6, 'c24f0300000e', 'hex'), speed: 'low' }, //약(켜짐)
-		// { deviceId: 'Fan1', type: 'Fan', commandHex: Buffer.alloc(6, 'c24f0200000f', 'hex'), speed: 'medium' }, //중(켜짐)
-		// { deviceId: 'Fan1', type: 'Fan', commandHex: Buffer.alloc(6, 'c24f0100000c', 'hex'), speed: 'high' }, //강(켜짐)
+		// { deviceId: 'Fan1', type: 'Fan', commandHex: Buffer.alloc(6, 'c24f05000008', 'hex'), property: { power: 'on' } }, //켜짐
+		// { deviceId: 'Fan1', type: 'Fan', commandHex: Buffer.alloc(6, 'c24f0600000b', 'hex'), property: { power: 'off' } }, //꺼짐
+		// { deviceId: 'Fan1', type: 'Fan', commandHex: Buffer.alloc(6, 'c24f0300000e', 'hex'), property: { speed: 'low' } }, //약(켜짐)
+		// { deviceId: 'Fan1', type: 'Fan', commandHex: Buffer.alloc(6, 'c24f0200000f', 'hex'), property: { speed: 'medium' } }, //중(켜짐)
+		// { deviceId: 'Fan1', type: 'Fan', commandHex: Buffer.alloc(6, 'c24f0100000c', 'hex'), property: { speed: 'high' } }, //강(켜짐)
 		// 난방
-		{ deviceId: 'Thermo1', type: 'Thermo', commandHex: Buffer.alloc(8, 'ae7d010100000053', 'hex'), mode: 'heat' }, // 온도조절기1-on
-		{ deviceId: 'Thermo1', type: 'Thermo', commandHex: Buffer.alloc(8, 'ae7d010000000052', 'hex'), mode: 'off' }, // 온도조절기1-off
-		{ deviceId: 'Thermo2', type: 'Thermo', commandHex: Buffer.alloc(8, 'ae7d020100000050', 'hex'), mode: 'heat' },
-		{ deviceId: 'Thermo2', type: 'Thermo', commandHex: Buffer.alloc(8, 'ae7d020000000051', 'hex'), mode: 'off' },
-		{ deviceId: 'Thermo3', type: 'Thermo', commandHex: Buffer.alloc(8, 'ae7d030100000051', 'hex'), mode: 'heat' },
-		{ deviceId: 'Thermo3', type: 'Thermo', commandHex: Buffer.alloc(8, 'ae7d030000000050', 'hex'), mode: 'off' },
-		{ deviceId: 'Thermo4', type: 'Thermo', commandHex: Buffer.alloc(8, 'ae7d040100000056', 'hex'), mode: 'heat' },
-		{ deviceId: 'Thermo4', type: 'Thermo', commandHex: Buffer.alloc(8, 'ae7d040000000057', 'hex'), mode: 'off' },
-		{ deviceId: 'Thermo5', type: 'Thermo', commandHex: Buffer.alloc(8, 'ae7d050100000057', 'hex'), mode: 'heat' },
-		{ deviceId: 'Thermo5', type: 'Thermo', commandHex: Buffer.alloc(8, 'ae7d050000000056', 'hex'), mode: 'off' },
-		{ deviceId: 'Thermo1', type: 'Thermo', commandHex: Buffer.alloc(8, 'ae7f01FF000000FF', 'hex'), setTemp: '' }, // 온도조절기1-온도설정
-		{ deviceId: 'Thermo2', type: 'Thermo', commandHex: Buffer.alloc(8, 'ae7f02FF000000FF', 'hex'), setTemp: '' },
-		{ deviceId: 'Thermo3', type: 'Thermo', commandHex: Buffer.alloc(8, 'ae7f03FF000000FF', 'hex'), setTemp: '' },
-		{ deviceId: 'Thermo4', type: 'Thermo', commandHex: Buffer.alloc(8, 'ae7f04FF000000FF', 'hex'), setTemp: '' },
-		{ deviceId: 'Thermo5', type: 'Thermo', commandHex: Buffer.alloc(8, 'ae7f05FF000000FF', 'hex'), setTemp: '' }
+		{ deviceId: 'Thermo1', type: 'Thermo', commandHex: Buffer.alloc(8, 'ae7d010100000053', 'hex'), property: { mode: 'heat' } }, // 온도조절기1-on
+		{ deviceId: 'Thermo1', type: 'Thermo', commandHex: Buffer.alloc(8, 'ae7d010000000052', 'hex'), property: { mode: 'off' } }, // 온도조절기1-off
+		{ deviceId: 'Thermo2', type: 'Thermo', commandHex: Buffer.alloc(8, 'ae7d020100000050', 'hex'), property: { mode: 'heat' } },
+		{ deviceId: 'Thermo2', type: 'Thermo', commandHex: Buffer.alloc(8, 'ae7d020000000051', 'hex'), property: { mode: 'off' } },
+		{ deviceId: 'Thermo3', type: 'Thermo', commandHex: Buffer.alloc(8, 'ae7d030100000051', 'hex'), property: { mode: 'heat' } },
+		{ deviceId: 'Thermo3', type: 'Thermo', commandHex: Buffer.alloc(8, 'ae7d030000000050', 'hex'), property: { mode: 'off' } },
+		{ deviceId: 'Thermo4', type: 'Thermo', commandHex: Buffer.alloc(8, 'ae7d040100000056', 'hex'), property: { mode: 'heat' } },
+		{ deviceId: 'Thermo4', type: 'Thermo', commandHex: Buffer.alloc(8, 'ae7d040000000057', 'hex'), property: { mode: 'off' } },
+		{ deviceId: 'Thermo5', type: 'Thermo', commandHex: Buffer.alloc(8, 'ae7d050100000057', 'hex'), property: { mode: 'heat' } },
+		{ deviceId: 'Thermo5', type: 'Thermo', commandHex: Buffer.alloc(8, 'ae7d050000000056', 'hex'), property: { mode: 'off' } },
+		{ deviceId: 'Thermo1', type: 'Thermo', commandHex: Buffer.alloc(8, 'ae7f01FF000000FF', 'hex'), property: { setTemp: '' } }, // 온도조절기1-온도설정
+		{ deviceId: 'Thermo2', type: 'Thermo', commandHex: Buffer.alloc(8, 'ae7f02FF000000FF', 'hex'), property: { setTemp: '' } },
+		{ deviceId: 'Thermo3', type: 'Thermo', commandHex: Buffer.alloc(8, 'ae7f03FF000000FF', 'hex'), property: { setTemp: '' } },
+		{ deviceId: 'Thermo4', type: 'Thermo', commandHex: Buffer.alloc(8, 'ae7f04FF000000FF', 'hex'), property: { setTemp: '' } },
+		{ deviceId: 'Thermo5', type: 'Thermo', commandHex: Buffer.alloc(8, 'ae7f05FF000000FF', 'hex'), property: { setTemp: '' } }
 	],
 
 	FILTER: [
@@ -418,8 +418,8 @@ class RS485server {
 			case 0x7c: 	// 온도조절기 상태 정보
 				var objFound = CONST.DEVICE_STATE.find(obj => data.includes(obj.stateHex));	// 메시지 앞부분 매칭(온도부분 제외)
 				if (objFound && data.length === 8) {		// 메시지 길이 확인
-					objFound.setTemp = data[4].toString();		// 설정 온도
-					objFound.curTemp = data[5].toString();		// 현재 온도
+					objFound.property.setTemp = data[4].toString();		// 설정 온도
+					objFound.property.curTemp = data[5].toString();		// 현재 온도
 					this.UpdateDeviceStatus(objFound);
 				}
 				break;
@@ -507,7 +507,7 @@ class RS485server {
 		// }
 		// 다른 명령은 미리 정의해놓은 값을 매칭
 		else {
-			objFound = CONST.DEVICE_COMMAND.find(obj => obj.deviceId === deviceSubId && obj[property] === value);
+			objFound = CONST.DEVICE_COMMAND.find(obj => obj.deviceId === deviceSubId && obj.property[property] === value);
 		}
 	
 		if (objFound == null) {
@@ -515,7 +515,7 @@ class RS485server {
 		}
 	
 		// 현재 상태와 같으면 Skip
-		if (value === this._deviceStatusCache[objFound.deviceId + objFound[property]]) {
+		if (value === this._deviceStatusCache[objFound.deviceId + objFound.property[property]]) {
 			log('Value is not changed. skip.');
 			return;
 		}
@@ -533,16 +533,16 @@ class RS485server {
 	UpdateDeviceStatus(obj) {
 		//log('UpdateDeviceStatus: deviceId[' + obj.deviceId + '], stateHex[' + obj.stateHex.toString('hex'));
 
-		let arrPropertyName = Object.keys(obj);
+		let arrPropertyName = Object.keys(obj.property);
 		// 상태값이 아닌 항목들은 제외 [deviceId, type, stateHex, commandHex, sentTime]
-		const arrFilter = ['deviceId', 'type', 'stateHex', 'commandHex', 'sentTime'];
-		arrPropertyName = arrPropertyName.filter(propertyName => !arrFilter.includes(propertyName));
+		//const arrFilter = ['deviceId', 'type', 'stateHex', 'commandHex', 'sentTime'];
+		//arrPropertyName = arrPropertyName.filter(propertyName => !arrFilter.includes(propertyName));
 
 		// 상태값별 현재 상태 파악하여 변경되었으면 상태 반영
 		arrPropertyName.forEach( (propertyName) => {
 			// 상태값이 없거나 상태가 같으면 반영 중지
 			let curStatus = this._deviceStatusCache[obj.deviceId + propertyName];
-			if(obj[propertyName] == null || obj[propertyName] === curStatus) {
+			if(obj.property[propertyName] == null || obj.property[propertyName] === curStatus) {
 				//log('The status is same as before... skip...');
 				return;
 			}
@@ -551,12 +551,12 @@ class RS485server {
 	
 			// 미리 상태 반영한 device의 상태 원복 방지
 			if(this._commandQueue.length > 0) {
-				let found = this._commandQueue.find(q => q.deviceId === obj.deviceId && q[propertyName] === curStatus);
+				let found = this._commandQueue.find(q => q.deviceId === obj.deviceId && q.property[propertyName] === curStatus);
 				if(found != null) return;
 			}
 	
 			// 상태 반영
-			this._deviceStatusCache[obj.deviceId + propertyName] = obj[propertyName];
+			this._deviceStatusCache[obj.deviceId + propertyName] = obj.property[propertyName];
 			// 이전에 없던 device이면 새로 생성한다.
 			let deviceStatus = this._deviceStatus.find(o => (o.id === obj.deviceId));
 			if (!deviceStatus) {
@@ -568,13 +568,13 @@ class RS485server {
 				});
 				deviceStatus = this._deviceStatus[len - 1];
 			}
-			deviceStatus.property[propertyName] = obj[propertyName];
+			deviceStatus.property[propertyName] = obj.property[propertyName];
 
 			// MQTT publish
-			this.UpdateMQTTDeviceStatus(obj.deviceId, propertyName, obj[propertyName]);
+			this.UpdateMQTTDeviceStatus(obj.deviceId, propertyName, obj.property[propertyName]);
 	
 			// SmartThings send event
-			this.UpdateSTDeviceStatus(obj.deviceId, propertyName, obj[propertyName]);
+			this.UpdateSTDeviceStatus(obj.deviceId, propertyName, obj.property[propertyName]);
 		});
 	}
 
