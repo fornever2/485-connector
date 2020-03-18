@@ -36,7 +36,6 @@ const CONST = {
 
 	// http port
 	HTTP_PORT: 8080,
-	HTTP_PREFIX: 'homenet',
 
 	// 메시지 Prefix 상수
 	MSG_PREFIX: [0xb0, 0xac, 0xae, 0xc2, 0xad, 0xab, 0xcc, 0xa1, 0xa2, 0xa3, 0xa4, 0xa5, 0xa6],
@@ -284,7 +283,7 @@ class RS485server {
 		}		
 	}
 
-	UpdateSTDeviceStatus(deviceStatus) {
+	UpdateSTDeviceStatus(deviceId, propertyName, propertyValue) {
 		// STInfo
 		// {
 		// 	"app_url":"https://graph-ap02-apnortheast2.api.smartthings.com:443/api/smartapps/installations/",
@@ -292,6 +291,11 @@ class RS485server {
 		// 	"access_token":"695e0875-aa0f-4f41-af29-ddd3c604f189"
 		// }	
 		if (this._STInfo) {
+			let deviceStatus = {};
+			deviceStatus.id = deviceId;
+			deviceStatus.property = {};
+			deviceStatus.property[propertyName] = propertyValue;
+	
 			log("[ST    ] Send to ST : " + JSON.stringify(deviceStatus));
 			const url = new URL(this._STInfo.app_url + this._STInfo.app_id + '/update' + '?access_token=' + this._STInfo.access_token);
 			const options = { method: 'POST' };
@@ -559,7 +563,7 @@ class RS485server {
 				let len = this._deviceStatus.push({
 					type: obj.type,
 					id: obj.deviceId,
-					uri: '/' + CONST.HTTP_PREFIX + '/' + obj.deviceId,
+					uri: '/homenet/' + obj.deviceId,
 					property: {}
 				});
 				deviceStatus = this._deviceStatus[len - 1];
@@ -569,8 +573,8 @@ class RS485server {
 			// MQTT publish
 			this.UpdateMQTTDeviceStatus(obj.deviceId, propertyName, obj[propertyName]);
 	
-			// (SmartThings send event)
-			this.UpdateSTDeviceStatus(deviceStatus);
+			// SmartThings send event
+			this.UpdateSTDeviceStatus(obj.deviceId, propertyName, obj[propertyName]);
 		});
 	}
 
@@ -648,8 +652,8 @@ class RS485server {
 	// ST에서 smartapp이 설치되어서 초기화 될 때 호출됨. --> STInfo 파일 생성
 	HTTP_post_smartthings_installed(req) {
 		log('[ST    ] Writing to STInfo file');
-		fs.writeFileSync('STInfo', JSON.stringify(this._STInfo));
 		this._STInfo = req.body;
+		fs.writeFileSync('STInfo', JSON.stringify(this._STInfo));
 		return { message: "Success" };
 	}
 
