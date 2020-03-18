@@ -92,8 +92,8 @@ def setThermostatMode(mode) {
 }
 
 def setHeatingSetpoint(setTemp) {
-	log.debug "Executing 'setHeatingSetpoint' value : ${setTemp}"
-    setProperty("setTemp", setTemp)
+	log.debug "Executing 'setHeatingSetpoint' value: ${setTemp}"
+    setProperty("setTemp", "${setTemp}")
     //sendEvent(name:"heatingSetpoint", value:setTemp)
 }
 
@@ -158,10 +158,8 @@ def refreshCallback(physicalgraph.device.HubResponse hubResponse) {
 	def msg, status, json
     try {
         msg = parseLanMessage(hubResponse.description)
-        log.debug msg.json.message
-        if(msg.json.status == 200){
-        	updateDevice(msg.json.message)
-        }
+        log.debug msg.json
+       	updateDevice(msg.json)
 	} catch (e) {
         log.error("Exception caught while parsing data: "+e)
     }
@@ -187,10 +185,14 @@ def setPath(String path){
 
 def updateDevice(data) {
 	log.debug "updateDevice - ${data}"
-    sendEvent(name: "thermostatMode", value: data.property.mode)
-    sendEvent(name: "heatingSetpoint", value: data.property.setTemp)
-    sendEvent(name: "temperature", value: data.property.curTemp)
-    if (data.property.mode == "off") {
+    def mode = data.property.mode ? data.property.mode : "off"
+    def setTemp = data.property.setTemp ? data.property.setTemp : 0
+    def curTemp = data.property.curTemp ? data.property.curTemp : 0
+    
+    sendEvent(name: "thermostatMode", value: mode)
+    sendEvent(name: "heatingSetpoint", value: setTemp)
+    sendEvent(name: "temperature", value: curTemp)
+    if (mode == "off") {
     	sendEvent(name:"switch", value:"off")
     } else {
     	sendEvent(name:"switch", value:"on")
@@ -223,11 +225,9 @@ def setPropertyCallback(physicalgraph.device.HubResponse hubResponse) {
 	def msg, status, json
     try {
         msg = parseLanMessage(hubResponse.description)
-        log.debug msg.json.message
-        if(msg.json.status == 200){
-        	// TODO : sendEvent for response property
-        	//sendEvent(name:"switch", value:state.req_value)
-        }
+        log.debug msg.json
+       	// TODO : sendEvent for response property
+       	//sendEvent(name:"switch", value:state.req_value)
 	} catch (e) {
         log.error("Exception caught while parsing data: "+e);
     }

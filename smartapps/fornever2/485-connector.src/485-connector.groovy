@@ -41,6 +41,24 @@ def installed() {
     	log.debug "creating token..."
         createAccessToken()
     }
+    
+    // 485 서버에 token 정보등을 보내서 서버에 STInfo 파일 생성
+    def options = [
+     	"method": "POST",
+        "path": "/smartthings/installed",
+        "headers": [
+        	"HOST": settings.serverAddress,
+            "Content-Type": "application/json"
+        ],
+        "body":[
+            "app_url":"${apiServerUrl}/api/smartapps/installations/",
+            "app_id":app.id,
+            "access_token":state.accessToken
+        ]
+    ]    
+    log.debug "Sending intialize info - ${options}"    
+    def myhubAction = new physicalgraph.device.HubAction(options, null, [callback: null])
+    sendHubCommand(myhubAction)
         
 	initialize()
 }
@@ -61,7 +79,7 @@ def uninstalled() {
     // 485 서버에 uninstall 된 것을 보내서 기존 STInfo 파일 삭제
     def options = [
      	"method": "POST",
-        "path": "/homenet/smartthings/uninstalled",
+        "path": "/smartthings/uninstalled",
         "headers": [
         	"HOST": settings.serverAddress,
             "Content-Type": "application/json"
@@ -81,23 +99,6 @@ def childUninstalled() {
 def initialize() {
 	// TODO: subscribe to attributes, devices, locations, etc.
     log.debug "initialize() called..."
-
-    def options = [
-     	"method": "POST",
-        "path": "/homenet/smartthings/initialize",
-        "headers": [
-        	"HOST": settings.serverAddress,
-            "Content-Type": "application/json"
-        ],
-        "body":[
-            "app_url":"${apiServerUrl}/api/smartapps/installations/",
-            "app_id":app.id,
-            "access_token":state.accessToken
-        ]
-    ]    
-    log.debug "Sending intialize info - ${options}"    
-    def myhubAction = new physicalgraph.device.HubAction(options, null, [callback: null])
-    sendHubCommand(myhubAction)
 }
 
 //////////////////////////////////////////////////////////
@@ -112,7 +113,7 @@ def settingPage(){
         }
 		section("RS485 server setting") {
         	paragraph "RS485 server should be accessible from SmartThings cloud. Please input RS485 server's IP address including port number.\nNOTE) Do not input local network address."
-        	input "serverAddress", "text", title: "IP address (ex. 111.111.111.111:11)", required: true, value: "211.218.213.108:8080"
+        	input "serverAddress", "text", title: "IP address (ex. 192.168.29.101:8080)", required: true, value: "192.168.29.101:8080"
         }
 	}
 }
@@ -122,7 +123,7 @@ def connectingPage(){
     
     if (state.curStatus == "setting") {
     	state.curStatus = "connecting"
-        getConnectorStatus(settings.serverAddress, connectorCallback)
+        getConnectorStatus()
     } 
     
     if (state.curStatus == "setting" || state.curStatus == "connecting") {
@@ -141,17 +142,17 @@ def connectingPage(){
     }
 }
 
-def getConnectorStatus(address, _callback) {	
+def getConnectorStatus() {	
     def options = [
      	"method": "GET",
         "path": "/homenet",
         "headers": [
-        	"HOST": address,
+        	"HOST": settings.serverAddress,
             "Content-Type": "application/json"
         ]
     ]
     log.debug "getConnectorStatus() - sendHubCommand : ${options}"
-    sendHubCommand(new physicalgraph.device.HubAction(options, null, [callback: _callback]))
+    sendHubCommand(new physicalgraph.device.HubAction(options, null, [callback: connectorCallback]))
 }
 
 def connectorCallback(physicalgraph.device.HubResponse hubResponse){
@@ -160,9 +161,9 @@ def connectorCallback(physicalgraph.device.HubResponse hubResponse){
     try {
         msg = parseLanMessage(hubResponse.description)        
         def jsonObj = msg.json
-        log.debug "connectorCallback() - response status : ${jsonObj.status}, message : ${jsonObj.message}"
+        log.debug "connectorCallback() - response : ${jsonObj}"
         def count = 0
-        jsonObj.message.each{ item->
+        jsonObj.each{ item->
             def dni = state.dniHeaderStr + item.id.toLowerCase()
             log.debug "dni : ${dni}, item : ${item}"
             if(!getChildDevice(dni)){
