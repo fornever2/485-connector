@@ -23,12 +23,12 @@ const CONST = {
 	SERIAL_PORT_NAME: process.platform.startsWith('win') ? "COM6" : "/dev/ttyUSB0",
 	// SerialPort 전송 Delay(ms)
 	SERIAL_SEND_DELAY: 80,
+	// MQTT 수신 Delay(ms)
+	SERIAL_READY_DELAY: 1000 * 10,
 
 	// MQTT 브로커
 	MQTT_BROKER: 'mqtt://192.168.219.150',
 	MQTT_CLIENTID: 'Samsung-Homenet',
-	// MQTT 수신 Delay(ms)
-	MQTT_READY_DELAY: 1000 * 10,
 	// MQTT Topic template
 	MQTT_TOPIC_PRFIX: 'homenet',
 	MQTT_STATE_TOPIC: 'homenet/%s/%s/state', // 상태 전달 (/homenet/${deviceId}/${property}/state/ = ${value})
@@ -259,29 +259,28 @@ class CustomTransform {
 class RS485server {
 	constructor() {
 		this._packets = {};
-		this._STInfo = undefined;	// SmartThings 485-connector와의 통신을 위한 url 및 token 정보
-		this._mqttReady = false;
+		this._serialReady = false;
 		this._lastReceive = new Date().getTime();
 		this._commandQueue = new Array();
 		this._deviceStatusCache = {};
 		this._deviceStatus = [];
 
-		this.InitST();
+		this._STInfo = this.LoadSTInfoFromFile();	// SmartThings 485-connector와의 통신을 위한 url 및 token 정보
 		this._serialPort = this.InitSerialPort();
 		this._mqttClient = this.InitMQTTClient();
-		this._httpServer = this.InitHttpServer();
+		this.InitHttpServer();
 	}
 
 	//////////////////////////////////////////////////////////////////////////////////////
 	// SmartThings
-	InitST() {
+	LoadSTInfoFromFile() {
 		log("[ST    ] Reading SmartThings info from file 'STInfo'...")
 		try {
 			let text = fs.readFileSync('STInfo', 'utf8')
 			//log('[ST    ] File content : ' + text)
-			this._STInfo = JSON.parse(text)
+			return JSON.parse(text)
 		} catch (e) {
-			this._STInfo = undefined;
+			return undefined;
 		}		
 	}
 
@@ -324,18 +323,11 @@ class RS485server {
 		});
 		// HA에서 MQTT로 제어 명령 수신
 		client.on('message', this.MQTTMessageHandler.bind(this));
-
-		// serial에서 device 상태들을 읽어들일 때 까지 기다린다.
-		setTimeout(() => {
-			this._mqttReady = true;
-			log('[MQTT  ] MQTT Ready...')
-		}, CONST.MQTT_READY_DELAY);
-
 		return client;
 	}
 
 	MQTTMessageHandler(topic, message) {
-		if(this._mqttReady) {
+		if(this._serialReady) {
 			var topics = topic.split('/');
 			var value = message.toString(); // message buffer이므로 string으로 변환		
 			if(topics[0] === CONST.MQTT_TOPIC_PRFIX) {
@@ -363,7 +355,14 @@ class RS485server {
 			autoOpen: false,
 			encoding: 'hex'
 		});
-		serial.on('open', () => log('[Serial] Success open port:', CONST.SERIAL_PORT_NAME));
+		serial.on('open', () => {
+			log('[Serial] Success open port:', CONST.SERIAL_PORT_NAME)
+			// serial port가 open 된 후 serial에서 device 상태들을 읽어들일 때 까지 기다린다.
+			setTimeout(() => {
+				this._serialReady = true;
+				log('[Serial] Serial service Ready...')
+			}, CONST.SERIAL_READY_DELAY);
+		});
 		serial.open((err) => {
 			if (err) {
 				return log('[Serial] Error opening port:', err.message)
@@ -586,184 +585,105 @@ class RS485server {
 			log("[ST    ] 485server http server listening on port " + CONST.HTTP_PORT);
 		});
 
+		// root path로 접근하면 homenet으로 redirect 함
+		app.get("/", (req, res) => res.redirect('homenet'));			
 
-		app.get("/", (req, res) => {
-			// GET 메소드 /games로 넘어감
-			res.redirect(CONST.HTTP_PREFIX);
-		});
-		
-		app.get('/' + CONST.HTTP_PREFIX, (req, res) => {
-			log('[' + req.method + '] ' + req.url);
-			var result = {};
-			try {
-				if (!this._deviceStatus || this._deviceStatus.length == 0) {
-					throw new Error('No device found');
-				}
-				result.message = this._deviceStatus;
-				res.status(200);
-			} catch (e) {
-				result.message = e.toString();
-				res.status(400);
-			}
-			result.status = res.statusCode;
-			log('[result] : ' + JSON.stringify(result));
-			res.send(result);
-		});
-		
-		app.get('/' + CONST.HTTP_PREFIX + '/:id', (req, res) => {
-			log('[' + req.method + '] ' + req.url);
-			var result = {};
-			try {
-				result.message = this.GetDeviceStatus(req.params.id);
-				res.status(200);
-			} catch (e) {
-				result.message = e.toString();
-				res.status(400);
-			}
-			result.status = res.statusCode;
-			log('[result] : ' + JSON.stringify(result));
-			res.send(result);
-		});
-		
-		app.get('/' + CONST.HTTP_PREFIX + '/:id/:property', (req, res) => {
-			log('[' + req.method + '] ' + req.url);
-			var result = {};
-			try {
-				result.message = this.GetPropertyStatus(req.params.id, req.params.property);
-				res.status(200);
-			} catch (e) {
-				result.message = e.toString();
-				res.status(400);
-			}
-			result.status = res.statusCode;
-			log('[result] : ' + JSON.stringify(result));
-			res.send(result);
-		});
-		
-		app.put('/' + CONST.HTTP_PREFIX + '/:id/:property/:value', (req, res) => {
-			log('[' + req.method + '] ' + req.url);
-			var result = {};
-			try {
-				this.SetDeviceProperty(req.params.id, req.params.property, req.params.value);
-				result.message = this.GetPropertyStatus(req.params.id, req.params.property);
-				res.status(200);
-			} catch (e) {
-				result.message = e.toString();
-				res.status(400);
-			}
-			result.status = res.statusCode;
-			log('[result] : ' + JSON.stringify(result));
-			res.send(result);
-		});
-		
-		// serial로 message 전달
-		app.put('/' + CONST.HTTP_PREFIX + '/serial/:cmd', (req, res) => {
-			log('[' + req.method + '] ' + req.url);
-			var result = {};
-			try {
-				this.WriteSerialCommand(req.params.cmd);
-				result.message = "Success"
-				res.status(200);
-			} catch (e) {
-				result.message = e.toString();
-				res.status(400);
-			}
-			result.status = res.statusCode;
-			log('[result] : ' + JSON.stringify(result));
-			res.send(result);
-		});
-		
-		// ST에서 smartapp이 설치되어서 초기화 될 때 호출됨. --> STInfo 파일 생성
-		app.post('/' + CONST.HTTP_PREFIX + '/smartthings/initialize', (req, res) => {
-			log('[' + req.method + '] ' + req.url + ', body : ' + JSON.stringify(req.body));
-			log('[ST    ] Writing to STInfo file');
-			fs.writeFileSync('STInfo', JSON.stringify(this._STInfo));
-			this._STInfo = req.body;
-			// body : 
-			// {
-			// 	"app_url":"https://graph-ap02-apnortheast2.api.smartthings.com:443/api/smartapps/installations/",
-			// 	"app_id":"cd8a522f-40ad-4708-8a9d-c268f3167e8e",
-			// 	"access_token":"695e0875-aa0f-4f41-af29-ddd3c604f189"
-			// }	
-		
-			var result = {};
+		// 각종 routing handler 등록
+		app.get ('/homenet', 						(req, res) => this.HTTPCommonHandler(req, res, this.HTTP_get_homenet.bind(this)));
+		app.get ('/homenet/:id', 					(req, res) => this.HTTPCommonHandler(req, res, this.HTTP_get_homenet_id.bind(this)));
+		app.get ('/homenet/:id/:property', 			(req, res) => this.HTTPCommonHandler(req, res, this.HTTP_get_homenet_id_property.bind(this)));
+		app.put ('/homenet/:id/:property/:value', 	(req, res) => this.HTTPCommonHandler(req, res, this.HTTP_put_homenet_id_property.bind(this)));
+		app.put ('/homenet/serial/:cmd', 			(req, res) => this.HTTPCommonHandler(req, res, this.HTTP_put_homenet_serial.bind(this)));		
+		app.post('/smartthings/installed', 			(req, res) => this.HTTPCommonHandler(req, res, this.HTTP_post_smartthings_installed.bind(this)));		
+		app.post('/smartthings/uninstalled',		(req, res) => this.HTTPCommonHandler(req, res, this.HTTP_post_smartthings_uninstalled.bind(this)));
+		app.get ('/status', 						(req, res) => this.HTTPCommonHandler(req, res, this.HTTP_get_status.bind(this)));
+		app.get ('/packets', 						(req, res) => this.HTTPCommonHandler(req, res, this.HTTP_get_packets.bind(this)));
+		app.get ('/log', 							(req, res) => this.HTTPCommonHandler(req, res, this.HTTP_get_log.bind(this)));
+	}
+
+	HTTPCommonHandler(req, res, callback) {
+		log('[' + req.method + '] ' + req.url);
+		var result = {};
+		try {
+			result = callback(req);
 			res.status(200);
-			result.status = res.statusCode;
-			log('[result] : ' + JSON.stringify(result));
-			res.send(result);
-		});
-		
-		// ST에서 smartapp이 uninstall 될 때 호출됨. --> STInfo 파일 삭제
-		app.post('/' + CONST.HTTP_PREFIX + '/smartthings/uninstalled', (req, res) => {
-			log('[' + req.method + '] ' + req.url + ', body : ' + JSON.stringify(req.body));
-			log('[ST    ] Deleting STInfo file');
-			var result = {};
-			try	{
-				fs.unlinkSync('STInfo');
-				this._STInfo = undefined;
-				result.message = "Success"
-				res.status(200);
-			} catch (e) {
-				result.message = e.toString();
-				res.status(400);
-			}		
-			result.status = res.statusCode;
-			log('[result] : ' + JSON.stringify(result));
-			res.send(result);
-		});
+		} catch (e) {
+			result.message = e.toString();
+			res.status(400);
+		}
+		log('[result] : ' + JSON.stringify(result));
+		res.send(result);
+	}
 
-		app.get('/status', (req, res) => {
-			log('[' + req.method + '] ' + req.url);
-			var result = {};
-			try {
-				result.message = {};
-				result.message.deviceStatusCache = this._deviceStatusCache;
-				result.message.deviceStatus = this._deviceStatus;
-				res.status(200);
-			} catch (e) {
-				result.message = e.toString();
-				res.status(400);
+	//////////////////////////////////////////////////////////////////////////////////////
+	// http server handlers
+	HTTP_get_homenet(req) {
+		if (!this._deviceStatus || this._deviceStatus.length == 0) {
+			throw new Error('No device found');
+		}
+		return this._deviceStatus;
+	}
+
+	// not used
+	HTTP_get_homenet_id(req) {
+		return this.GetDeviceStatus(req.params.id);
+	}
+
+	// not used
+	HTTP_get_homenet_id_property(req) {
+		return this.GetPropertyStatus(req.params.id, req.params.property);
+	}
+
+	HTTP_put_homenet_id_property(req) {
+		this.SetDeviceProperty(req.params.id, req.params.property, req.params.value);
+		return this.GetPropertyStatus(req.params.id, req.params.property);
+	}
+
+	// serial로 message 전달
+	HTTP_put_homenet_serial(req) {
+		this.WriteSerialCommand(req.params.cmd);
+		return { message: "Success" };
+	}
+
+	// ST에서 smartapp이 설치되어서 초기화 될 때 호출됨. --> STInfo 파일 생성
+	HTTP_post_smartthings_installed(req) {
+		log('[ST    ] Writing to STInfo file');
+		fs.writeFileSync('STInfo', JSON.stringify(this._STInfo));
+		this._STInfo = req.body;
+		return { message: "Success" };
+	}
+
+	// ST에서 smartapp이 uninstall 될 때 호출됨. --> STInfo 파일 삭제
+	HTTP_post_smartthings_uninstalled(req) {
+		fs.unlinkSync('STInfo');
+		this._STInfo = undefined;
+		return { message: "Success" };
+	}
+
+	HTTP_get_status(req) {
+		var status = {
+			deviceStatusCache: this._deviceStatusCache,
+			deviceStatus: this._deviceStatus,
+		};
+		return { message: status };
+	}
+
+	HTTP_get_packets(req) {
+		var packetList = [];
+		for (const packet in this._packets) {
+			if (this._packets.hasOwnProperty(packet)) {				
+				var item = { name: packet, count: this._packets[packet] };
+				packetList.push(item);
 			}
-			result.status = res.statusCode;
-			log('[result] : ' + JSON.stringify(result));
-			res.send(result);
-		});
-		
-		app.get('/packets', (req, res) => {
-			log('[' + req.method + '] ' + req.url);
-			var result = {};
-			try {
-				var json = [];
-				for (const packet in this._packets) {
-					if (this._packets.hasOwnProperty(packet)) {				
-						var item = { name: packet, count: this._packets[packet] };
-						json.push(item);
-					}
-				}
-				result.message = json;
-				res.status(200);
-			} catch (e) {
-				result.message = e.toString();
-				res.status(400);
-			}
-			result.status = res.statusCode;
-			log('[result] : ' + JSON.stringify(result));
-			res.send(result);
-		});
-		
-		app.get('/log', (req, res) => {
-			log('[' + req.method + '] ' + req.url);
-			var result = "<pre>";
-			try {
-				result += fs.readFileSync('log', 'utf8')
-			} catch (e) {
-				result += e
-			}
-			result += "</pre>";
-			log('[result] : ' + result);
-			res.send(result);
-		});
-		return app;
+		}
+		return { packets: packetList };
+	}
+
+	HTTP_get_log(req) {
+		var result = "<pre>";
+		result += fs.readFileSync('log', 'utf8')
+		result += "</pre>";
+		return result;
 	}
 }
 
