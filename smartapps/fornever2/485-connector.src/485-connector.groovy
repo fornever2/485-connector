@@ -169,9 +169,9 @@ def connectorCallback(physicalgraph.device.HubResponse hubResponse){
             if(!getChildDevice(dni)){
             	try{
                 	def typeName
-                	if (item.type == "Light") {
+                	if (item.type == "light") {
 						typeName = "485-light"
-                    } else if (item.type == "Thermo") {
+                    } else if (item.type == "thermostat") {
                     	typeName = "485-thermostat"
                     }
                     
@@ -182,7 +182,7 @@ def connectorCallback(physicalgraph.device.HubResponse hubResponse){
                     childDevice.init()
                     childDevice.setUrl("${settings.serverAddress}")
                     childDevice.setPath("/homenet/${item.id}")
-                    childDevice.updateDevice(item)
+                    childDevice.refresh()
                     
                     state.addedCountNow = (state.addedCountNow.toInteger() + 1)
                     log.debug "[addChildDevice] - typeName:${typeName}, dni:${dni}, label:${label}"
@@ -201,19 +201,19 @@ def connectorCallback(physicalgraph.device.HubResponse hubResponse){
 
 ///////////////////////////////////////
 
-def updateDevice(){
-    def data = request.JSON
-    log.debug "updateDevice() - ${data}"
-    def dni = state.dniHeaderStr + data.id.toLowerCase()
+def updateProperty(){
+    log.debug "updateProperty - id: ${params.id}, property: ${params.property}, value: ${params.value}"
+    //def data = request.JSON
+    def dni = state.dniHeaderStr + params.id.toLowerCase()
     def chlidDevice = getChildDevice(dni)
     if(chlidDevice){
-		chlidDevice.updateDevice(data)
+		chlidDevice.updateProperty(params.property, params.value)
+        def resultString = new groovy.json.JsonOutput().toJson("result":true)
+    	render contentType: "text/plain", data: resultString   
     } else {
     	log.error "Device not found - dni : ${dni}"
+        httpError(501, "Device not found - dni : ${dni}")
     }
-    
-    def resultString = new groovy.json.JsonOutput().toJson("result":true)
-    render contentType: "text/plain", data: resultString
 }
 
 def authError() {
@@ -222,8 +222,8 @@ def authError() {
 
 mappings {
     if (!params.access_token || (params.access_token && params.access_token != state.accessToken)) {
-        path("/update")                         { action: [POST: "authError"]  }
+        path("/updateProperty/:id/:property/:value")    { action: [POST: "authError"]  }
     } else {
-        path("/update")                         { action: [POST: "updateDevice"]  }
+        path("/updateProperty/:id/:property/:value")    { action: [POST: "updateProperty"]  }
     }
 }
