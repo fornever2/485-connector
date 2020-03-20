@@ -15,7 +15,8 @@ const express = require('express');
 const fs = require('fs');
 
 // 로그 표시 
-const log = (...args) => console.log('[' + new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul' }) + ']', args.join(' '));
+const log = (...args) => console.log('[' + new Date().toISOString().replace('T', ' ').replace('Z', '') + ']', args.join(' '));
+
 
 //////////////////////////////////////////////////////////////////////////////////////
 const CONST = {
@@ -40,159 +41,23 @@ const CONST = {
 	// 메시지 Prefix 상수
 	MSG_PREFIX: [0xb0, 0xac, 0xae, 0xc2, 0xad, 0xab, 0xcc, 0xa1, 0xa2, 0xa3, 0xa4, 0xa5, 0xa6],
 
-	MSG_CATEGORY: [
-		{ code: 0xb0, type: 'response' },	// 응답
-		{ code: 0xac, type: 'light' },		// 조명
-		{ code: 0xae, type: 'heat' },		// 난방
-		{ code: 0xc2, type: 'vent' },		// 환기
-		{ code: 0xad, type: 'entrance' },	// 현관
-		{ code: 0xab, type: 'gas' },			// 가스밸브
-		{ code: 0xcc, type: 'unknown' },
-		{ code: 0xa1, type: 'unknown' },
-		{ code: 0xa2, type: 'unknown' },
-		{ code: 0xa3, type: 'unknown' },
-		{ code: 0xa4, type: 'unknown' },
-		{ code: 0xa5, type: 'unknown' },
-		{ code: 0xa6, type: 'unknown' },		
+	MSG_INFO: [
+		// 상태 조회
+		{ deviceCode: 0xac, cmdCode: 0x79, len: 5, managed: true,  req: 'get', type: 'light', 		propertyName: ''}, 			// 조명 상태
+		{ deviceCode: 0xae, cmdCode: 0x7c, len: 8, managed: true,  req: 'get', type: 'thermostat',	propertyName: ''}, 			// 난방 상태
+		{ deviceCode: 0xc2, cmdCode: 0x4e, len: 6, managed: false, req: 'get', type: 'vent', 		propertyName: ''}, 			// 환기 상태
+		{ deviceCode: 0xad, cmdCode: 0x52, len: 4, managed: false, req: 'get', type: 'intLight', 	propertyName: ''}, 			// 일괄조명 상태	
+		{ deviceCode: 0xab, cmdCode: 0x41, len: 4, managed: false, req: 'get', type: 'gasValve', 	propertyName: ''}, 			// 가스밸브 상태
+		{ deviceCode: 0xad, cmdCode: 0x41, len: 4, managed: false, req: 'get', type: 'intControl', 	propertyName: ''}, 			// 엘레베이터 상태	
+		// 제어                                                     
+		{ deviceCode: 0xac, cmdCode: 0x7a, len: 5, managed: true,  req: 'set', type: 'light', 		propertyName: 'switch' },	// 조명 제어
+		{ deviceCode: 0xae, cmdCode: 0x7d, len: 8, managed: true,  req: 'set', type: 'thermostat',	propertyName: 'mode' 	},	// 난방 상태 제어
+		{ deviceCode: 0xae, cmdCode: 0x7f, len: 8, managed: true,  req: 'set', type: 'thermostat',	propertyName: 'setTemp'},	// 난방 온도 제어
+		{ deviceCode: 0xc2, cmdCode: 0x4f, len: 6, managed: false, req: 'set', type: 'vent', 		propertyName: ''}, 			// 환기 제어
+		{ deviceCode: 0xad, cmdCode: 0x53, len: 4, managed: false, req: 'set', type: 'intLight', 	propertyName: ''}, 			// 일괄조명 제어
+		{ deviceCode: 0xab, cmdCode: 0x78, len: 4, managed: false, req: 'set', type: 'gasValve', 	propertyName: ''}, 			// 가스밸브 제어  --> 복잡한 제어 routine 필요
+		{ deviceCode: 0xad, cmdCode: 0x2f, len: 4, managed: false, req: 'set', type: 'intControl', 	propertyName: ''}, 			// 엘레베이터 제어  --> 복잡한 제어 routine 필요
 	],
-
-	MSG_CMD: [
-		{ code: 0x79, length: 5, category: 'light', cmd: 'getStatus'},					// 조명 상태 요청
-		{ code: 0x7a, length: 5, category: 'light', cmd: 'control'},					// 조명 제어 요청
-		{ code: 0x7c, length: 8, category: 'heat', cmd: 'getStatus'},					// 난방 상태 요청
-		{ code: 0x7d, length: 8, category: 'heat', cmd: 'setMode'},						// 난방 제어 요청
-		{ code: 0x7f, length: 8, category: 'heat', cmd: 'setTemperature'},				// 난방 온도 설정 요청
-		{ code: 0x4e, length: 6, category: 'vent', cmd: 'getStatus'},					// 환기 상태 요청
-		{ code: 0x4f, length: 6, category: 'vent', cmd: 'control'},						// 환기 제어 요청
-		{ code: 0x41, length: 4, category: 'entrance', cmd: 'getButtonStatus'},			// 현관 버튼 상태 요청
-		{ code: 0x52, length: 4, category: 'entrance', cmd: 'getAllLightStatus'},		// 일괄 조명 상태 요청
-		{ code: 0x53, length: 4, category: 'entrance', cmd: 'controlAllLight'},			// 일괄 조명 상태 요청
-		{ code: 0x54, length: 4, category: 'entrance', cmd: 'getAllLightButtonStatus'},	// 일괄 조명 버튼 상태 수신
-		{ code: 0x55, length: 4, category: 'entrance', cmd: 'getGasButtonStatus'},		// 가스 잠금 버튼 상태 수신
-		{ code: 0x56, length: 4, category: 'entrance', cmd: 'getGasButtonStatus'},		// 가스 잠금 버튼 상태 수신
-		{ code: 0x2f, length: 4, category: 'entrance', cmd: 'getElevatorButtonStatus'},	// 엘리베이터 버튼 상태 수신
-		{ code: 0x41, length: 4, category: 'gas', cmd: 'getGasValveStatus'},			// 가스밸브 상태 요청
-		{ code: 0x78, length: 4, category: 'gas', cmd: 'lockGasValve'},					// 가스밸브 잠금 요청
-	],
-
-	// 기기별 상태 및 제어 코드(HEX)
-	DEVICE_STATE: [
-		// 전등 갯수가 3개인 경우
-		//{deviceId: 'Light1', type: 'Light', stateHex: Buffer.alloc(5,'b079310078','hex'), property: { power1: 'off', power2: 'off', power3: 'off' } }, //상태-00
-		//{deviceId: 'Light1', type: 'Light', stateHex: Buffer.alloc(5,'b079310179','hex'), property: { power1: 'on' , power2: 'off', power3: 'off' } }, //상태-01
-		//{deviceId: 'Light1', type: 'Light', stateHex: Buffer.alloc(5,'b07931027a','hex'), property: { power1: 'off', power2: 'on' , power3: 'off' } }, //상태-02
-		//{deviceId: 'Light1', type: 'Light', stateHex: Buffer.alloc(5,'b07931037b','hex'), property: { power1: 'on' , power2: 'on' , power3: 'off' } }, //상태-03
-		//{deviceId: 'Light1', type: 'Light', stateHex: Buffer.alloc(5,'b07931047c','hex'), property: { power1: 'off', power2: 'off', power3: 'on'  } }, //상태-04
-		//{deviceId: 'Light1', type: 'Light', stateHex: Buffer.alloc(5,'b07931057d','hex'), property: { power1: 'on' , power2: 'off', power3: 'on'  } }, //상태-05
-		//{deviceId: 'Light1', type: 'Light', stateHex: Buffer.alloc(5,'b07931067e','hex'), property: { power1: 'off', power2: 'on' , power3: 'on'  } }, //상태-06
-		//{deviceId: 'Light1', type: 'Light', stateHex: Buffer.alloc(5,'b07931077f','hex'), property: { power1: 'on' , power2: 'on' , power3: 'on'  } }, //상태-07
-		// 전등 갯수가 2개인경우
-		// { deviceId: 'Light1', type: 'Light', stateHex: Buffer.alloc(5, 'b079210068', 'hex'), property: { power1: 'off', power2: 'off'  } }, //상태-00
-		// { deviceId: 'Light1', type: 'Light', stateHex: Buffer.alloc(5, 'b079210169', 'hex'), property: { power1: 'on', power2: 'off'  } }, //상태-01
-		// { deviceId: 'Light1', type: 'Light', stateHex: Buffer.alloc(5, 'b07921026a', 'hex'), property: { power1: 'off', power2: 'on'  } }, //상태-02
-		// { deviceId: 'Light1', type: 'Light', stateHex: Buffer.alloc(5, 'b07921036b', 'hex'), property: { power1: 'on', power2: 'on'  } }, //상태-03
-		// 수정
-		{ deviceId: 'Light1', type: 'Light', stateHex: Buffer.alloc(5, 'b079210068', 'hex'), property: { switch: 'off'  } }, //상태-00
-		{ deviceId: 'Light2', type: 'Light', stateHex: Buffer.alloc(5, 'b079210068', 'hex'), property: { switch: 'off'  } }, //상태-00
-		{ deviceId: 'Light1', type: 'Light', stateHex: Buffer.alloc(5, 'b079210169', 'hex'), property: { switch: 'on'  } }, //상태-01
-		{ deviceId: 'Light2', type: 'Light', stateHex: Buffer.alloc(5, 'b079210169', 'hex'), property: { switch: 'off'  } }, //상태-01
-		{ deviceId: 'Light1', type: 'Light', stateHex: Buffer.alloc(5, 'b07921026a', 'hex'), property: { switch: 'off'  } }, //상태-02
-		{ deviceId: 'Light2', type: 'Light', stateHex: Buffer.alloc(5, 'b07921026a', 'hex'), property: { switch: 'on'  } }, //상태-02
-		{ deviceId: 'Light1', type: 'Light', stateHex: Buffer.alloc(5, 'b07921036b', 'hex'), property: { switch: 'on'  } }, //상태-03
-		{ deviceId: 'Light2', type: 'Light', stateHex: Buffer.alloc(5, 'b07921036b', 'hex'), property: { switch: 'on'  } }, //상태-03
-		// 환풍기
-		// { deviceId: 'Fan1', type: 'Fan', stateHex: Buffer.alloc(6, 'b04e0300017c', 'hex'), property: { power: 'off', speed: 'low'  } },
-		// { deviceId: 'Fan1', type: 'Fan', stateHex: Buffer.alloc(6, 'b04e0200017d', 'hex'), property: { power: 'off', speed: 'mid'  } },
-		// { deviceId: 'Fan1', type: 'Fan', stateHex: Buffer.alloc(6, 'b04e0100017e', 'hex'), property: { power: 'off', speed: 'high'  } },
-		// { deviceId: 'Fan1', type: 'Fan', stateHex: Buffer.alloc(6, 'b04e0300007d', 'hex'), property: { power: 'on', speed: 'low'  } },
-		// { deviceId: 'Fan1', type: 'Fan', stateHex: Buffer.alloc(6, 'b04e0200007c', 'hex'), property: { power: 'on', speed: 'mid'  } },
-		// { deviceId: 'Fan1', type: 'Fan', stateHex: Buffer.alloc(6, 'b04e0100007f', 'hex'), property: { power: 'on', speed: 'high'  } },
-		// 난방
-		{ deviceId: 'Thermo1', type: 'Thermo', stateHex: Buffer.alloc(4, 'b07c0101', 'hex'), property: { mode: 'heat', setTemp: '', curTemp: ''  } },	// 거실
-		{ deviceId: 'Thermo1', type: 'Thermo', stateHex: Buffer.alloc(4, 'b07c0100', 'hex'), property: { mode: 'off', setTemp: '', curTemp: ''  } },	// 거실
-		{ deviceId: 'Thermo2', type: 'Thermo', stateHex: Buffer.alloc(4, 'b07c0201', 'hex'), property: { mode: 'heat', setTemp: '', curTemp: ''  } },
-		{ deviceId: 'Thermo2', type: 'Thermo', stateHex: Buffer.alloc(4, 'b07c0200', 'hex'), property: { mode: 'off', setTemp: '', curTemp: ''  } },
-		{ deviceId: 'Thermo3', type: 'Thermo', stateHex: Buffer.alloc(4, 'b07c0301', 'hex'), property: { mode: 'heat', setTemp: '', curTemp: '' } },	// 침실 1
-		{ deviceId: 'Thermo3', type: 'Thermo', stateHex: Buffer.alloc(4, 'b07c0300', 'hex'), property: { mode: 'off', setTemp: '', curTemp: '' } },	// 침실 1
-		{ deviceId: 'Thermo4', type: 'Thermo', stateHex: Buffer.alloc(4, 'b07c0401', 'hex'), property: { mode: 'heat', setTemp: '', curTemp: '' } },	// 침실 2
-		{ deviceId: 'Thermo4', type: 'Thermo', stateHex: Buffer.alloc(4, 'b07c0400', 'hex'), property: { mode: 'off', setTemp: '', curTemp: '' } },	// 침실 2
-		{ deviceId: 'Thermo5', type: 'Thermo', stateHex: Buffer.alloc(4, 'b07c0501', 'hex'), property: { mode: 'heat', setTemp: '', curTemp: '' } },	// 침실 3
-		{ deviceId: 'Thermo5', type: 'Thermo', stateHex: Buffer.alloc(4, 'b07c0500', 'hex'), property: { mode: 'off', setTemp: '', curTemp: '' } }	// 침실 3
-	],
-
-	DEVICE_COMMAND: [
-		// 전등 갯수가 3개인 경우
-		//{deviceId: 'Light1', type: 'Light', commandHex: Buffer.alloc(5,'ac7a010057','hex'), property: { power1: 'off'} }, //거실1--off
-		//{deviceId: 'Light1', type: 'Light', commandHex: Buffer.alloc(5,'ac7a010156','hex'), property: { power1: 'on' } }, //거실1--on
-		//{deviceId: 'Light1', type: 'Light', commandHex: Buffer.alloc(5,'ac7a020054','hex'), property: { power2: 'off'} }, //거실2--off
-		//{deviceId: 'Light1', type: 'Light', commandHex: Buffer.alloc(5,'ac7a020155','hex'), property: { power2: 'on' } }, //거실2--on
-		//{deviceId: 'Light1', type: 'Light', commandHex: Buffer.alloc(5,'ac7a030055','hex'), property: { power3: 'off'} }, //거실3--off
-		//{deviceId: 'Light1', type: 'Light', commandHex: Buffer.alloc(5,'ac7a030154','hex'), property: { power3: 'on' } }, //거실3--on
-		// 전등 갯수가 2개인경우
-		// { deviceId: 'Light1', type: 'Light', commandHex: Buffer.alloc(5, 'ac7a010057', 'hex'), property: { power1: 'off' } }, //거실1--off
-		// { deviceId: 'Light1', type: 'Light', commandHex: Buffer.alloc(5, 'ac7a010156', 'hex'), property: { power1: 'on' } }, //거실1--on
-		// { deviceId: 'Light1', type: 'Light', commandHex: Buffer.alloc(5, 'ac7a020054', 'hex'), property: { power2: 'off' } }, //거실2--off
-		// { deviceId: 'Light1', type: 'Light', commandHex: Buffer.alloc(5, 'ac7a020155', 'hex'), property: { power2: 'on' } }, //거실2--on
-		// 수정 - fornever2
-		{ deviceId: 'Light1', type: 'Light', commandHex: Buffer.alloc(5, 'ac7a010057', 'hex'), property: { switch: 'off' } }, //거실1--off
-		{ deviceId: 'Light1', type: 'Light', commandHex: Buffer.alloc(5, 'ac7a010156', 'hex'), property: { switch: 'on' } }, //거실1--on
-		{ deviceId: 'Light2', type: 'Light', commandHex: Buffer.alloc(5, 'ac7a020054', 'hex'), property: { switch: 'off' } }, //거실2--off
-		{ deviceId: 'Light2', type: 'Light', commandHex: Buffer.alloc(5, 'ac7a020155', 'hex'), property: { switch: 'on' } }, //거실2--on
-		// 환풍기
-		// { deviceId: 'Fan1', type: 'Fan', commandHex: Buffer.alloc(6, 'c24f05000008', 'hex'), property: { power: 'on' } }, //켜짐
-		// { deviceId: 'Fan1', type: 'Fan', commandHex: Buffer.alloc(6, 'c24f0600000b', 'hex'), property: { power: 'off' } }, //꺼짐
-		// { deviceId: 'Fan1', type: 'Fan', commandHex: Buffer.alloc(6, 'c24f0300000e', 'hex'), property: { speed: 'low' } }, //약(켜짐)
-		// { deviceId: 'Fan1', type: 'Fan', commandHex: Buffer.alloc(6, 'c24f0200000f', 'hex'), property: { speed: 'medium' } }, //중(켜짐)
-		// { deviceId: 'Fan1', type: 'Fan', commandHex: Buffer.alloc(6, 'c24f0100000c', 'hex'), property: { speed: 'high' } }, //강(켜짐)
-		// 난방
-		{ deviceId: 'Thermo1', type: 'Thermo', commandHex: Buffer.alloc(8, 'ae7d010100000053', 'hex'), property: { mode: 'heat' } }, // 온도조절기1-on
-		{ deviceId: 'Thermo1', type: 'Thermo', commandHex: Buffer.alloc(8, 'ae7d010000000052', 'hex'), property: { mode: 'off' } }, // 온도조절기1-off
-		{ deviceId: 'Thermo2', type: 'Thermo', commandHex: Buffer.alloc(8, 'ae7d020100000050', 'hex'), property: { mode: 'heat' } },
-		{ deviceId: 'Thermo2', type: 'Thermo', commandHex: Buffer.alloc(8, 'ae7d020000000051', 'hex'), property: { mode: 'off' } },
-		{ deviceId: 'Thermo3', type: 'Thermo', commandHex: Buffer.alloc(8, 'ae7d030100000051', 'hex'), property: { mode: 'heat' } },
-		{ deviceId: 'Thermo3', type: 'Thermo', commandHex: Buffer.alloc(8, 'ae7d030000000050', 'hex'), property: { mode: 'off' } },
-		{ deviceId: 'Thermo4', type: 'Thermo', commandHex: Buffer.alloc(8, 'ae7d040100000056', 'hex'), property: { mode: 'heat' } },
-		{ deviceId: 'Thermo4', type: 'Thermo', commandHex: Buffer.alloc(8, 'ae7d040000000057', 'hex'), property: { mode: 'off' } },
-		{ deviceId: 'Thermo5', type: 'Thermo', commandHex: Buffer.alloc(8, 'ae7d050100000057', 'hex'), property: { mode: 'heat' } },
-		{ deviceId: 'Thermo5', type: 'Thermo', commandHex: Buffer.alloc(8, 'ae7d050000000056', 'hex'), property: { mode: 'off' } },
-		{ deviceId: 'Thermo1', type: 'Thermo', commandHex: Buffer.alloc(8, 'ae7f01FF000000FF', 'hex'), property: { setTemp: '' } }, // 온도조절기1-온도설정
-		{ deviceId: 'Thermo2', type: 'Thermo', commandHex: Buffer.alloc(8, 'ae7f02FF000000FF', 'hex'), property: { setTemp: '' } },
-		{ deviceId: 'Thermo3', type: 'Thermo', commandHex: Buffer.alloc(8, 'ae7f03FF000000FF', 'hex'), property: { setTemp: '' } },
-		{ deviceId: 'Thermo4', type: 'Thermo', commandHex: Buffer.alloc(8, 'ae7f04FF000000FF', 'hex'), property: { setTemp: '' } },
-		{ deviceId: 'Thermo5', type: 'Thermo', commandHex: Buffer.alloc(8, 'ae7f05FF000000FF', 'hex'), property: { setTemp: '' } }
-	],
-
-	FILTER: [
-		"cc4101000c",
-		"b041010070",
-		"a15a007b",
-		"a25a0078",
-		"a35a0079",
-		"a45a007e",
-		"a5410064",
-		"b0410071",
-		"a6410067",
-		"ab41006a",
-		"b0410170",
-		"ac41006d",
-		"ae7c030000000051",
-		"b07c03011819ff30",
-		"b07c01011819ff32",
-		"ac79000154",
-		"b079210068",
-		"b00c01003d",
-		"a25a0078",
-		"a45a007e",
-		"ae7c040000000056",
-		"b07c04011819ff37",
-		"cc0c010041",
-		"ae7c050000000057",
-		"b07c05011818ff37",
-		"cc0b0300030047",
-		"b00b01003a",
-		"ae7c010000000053",
-		"b07921026a",
-	]
 };
 
 
@@ -211,7 +76,7 @@ class CustomTransform {
 
 	_transform(chunk, encoding, done) {
 		var start = 0;
-		//log('chunk : ' + chunk.toString('hex'))
+		//log('[Serial] chunk : ' + chunk.toString('hex'))
 		for (var i = 0; i < chunk.length; i++) {
 			if (CONST.MSG_PREFIX.includes(chunk[i])) {			// 청크에 구분자(MSG_PREFIX)가 있으면
 				this._queueChunk.push(chunk.slice(start, i));	// 구분자 앞부분을 큐에 저장하고
@@ -224,11 +89,15 @@ class CustomTransform {
 			// 메시지 종류에 따른 메시지 길이 파악
 			else if (this._msgTypeFlag) {
 				switch (chunk[i]) {
-					case 0x41: case 0x52: case 0x53: case 0x54: case 0x55: case 0x56: case 0x78: case 0x2f:
+					case 0x41: // 가스밸브 / 엘레베이터 등 현관 외출 버튼 상태 조회
+					case 0x52: case 0x53: // 일괄조명 상태 / 제어
+					case 0x54: case 0x55: case 0x56: // ???
+					case 0x78: // 가스밸브 제어
+					case 0x2f: // 엘레베이터 제어
 						this._msgLength = 4; break;
-					case 0x79: case 0x7A:
+					case 0x79: case 0x7A: // 조명 상태 / 제어
 						this._msgLength = 5; break;
-					case 0x4e: case 0x4f:
+					case 0x4e: case 0x4f: // 환기 상태 / 제어					
 						this._msgLength = 6; break;
 					default:
 						this._msgLength = 8;
@@ -257,10 +126,11 @@ class CustomTransform {
 // - SmartThings 및 MQTT로 device 상태 정보 전달 및 명령을 전달 받는다.
 class RS485server {
 	constructor() {
-		this._packets = {};
+		this._receivedMsgs = [];
 		this._serialReady = false;
-		this._lastReceive = new Date().getTime();
+		this._lastReceive = new Date();
 		this._commandQueue = new Array();
+		this._serialCmdQueue = new Array();
 		this._deviceStatusCache = {};
 		this._deviceStatus = [];
 
@@ -291,23 +161,19 @@ class RS485server {
 		// 	"access_token":"695e0875-aa0f-4f41-af29-ddd3c604f189"
 		// }	
 		if (this._STInfo) {
-			let deviceStatus = {};
-			deviceStatus.id = deviceId;
-			deviceStatus.property = {};
-			deviceStatus.property[propertyName] = propertyValue;
-	
-			log("[ST    ] Send to ST : " + JSON.stringify(deviceStatus));
-			const url = new URL(this._STInfo.app_url + this._STInfo.app_id + '/update' + '?access_token=' + this._STInfo.access_token);
+			var path = '/updateProperty/' + deviceId + '/' + propertyName + '/' + propertyValue;
+			log("[ST    ] Send event   : " + path);
+			const url = new URL(this._STInfo.app_url + this._STInfo.app_id + path + '?access_token=' + this._STInfo.access_token);
 			const options = { method: 'POST' };
 			const req = https.request(url, options, (resp) => {
 				let data = '';				
-				resp.on('data', chunk => data += chunk );	// A chunk of data has been recieved.
+				resp.on('data', chunk => data += chunk );	// A chunk of data has been received.
 				resp.on('end', () => {	// The whole response has been received. Print out the result.
 					//log('[ST    ] Send to ST end - ' + data);
 				});
 			});
 			req.on("error", err => log("[ST    ] Error: " + err.message) );
-			req.write(JSON.stringify(deviceStatus));
+			//req.write(JSON.stringify(deviceStatus));
 			req.end();
 		} else {
 			log("[ST    ] Send to ST FAILED due to no STInfo...");
@@ -321,7 +187,7 @@ class RS485server {
 		client.on('connect', () => {
 			client.subscribe(CONST.MQTT_DEVICE_TOPIC, (err) => {
 				if (err) {
-					log('MQTT Subscribe fail! -', CONST.MQTT_DEVICE_TOPIC);
+					log('[MQTT  ] MQTT Subscribe fail! -', CONST.MQTT_DEVICE_TOPIC);
 				}
 			});
 		});
@@ -344,7 +210,7 @@ class RS485server {
 	
 	UpdateMQTTDeviceStatus(deviceId, propertyName, propertyValue) {
 		var topic = util.format(CONST.MQTT_STATE_TOPIC, deviceId, propertyName);
-		log('[MQTT  ] Send to HA :', topic, '->', propertyValue);
+		log('[MQTT  ] Publish MQTT :', topic, '->', propertyValue);
 		this._mqttClient.publish(topic, propertyValue, {retain: true});
 	}
 	
@@ -380,62 +246,121 @@ class RS485server {
 		return serial;
 	}
 
+	CalcChecksum(dataHex) {
+		var bite = 0;
+		// 모든 bite를 xor 시킨다.
+		for(let i = 0 ; i < dataHex.length ; i++) {
+			bite ^= dataHex[i];
+		}		
+		// checksum bite 직전 bite가 FF인 경우를 제외하면 0x80을 한번 더 xor 한다.
+		if (dataHex[dataHex.length - 2] != 0xFF) {
+			bite ^= 0x80;
+		}
+		return bite;
+	}
+
 	// 홈넷에서 SerialPort로 상태 정보 수신
-	SerialMessageHandler(data) {
-		//console.log('Receive interval: ', (new Date().getTime())-this._lastReceive, 'ms ->', data.toString('hex'));
-		this._lastReceive = new Date().getTime();
-		let packet = data.toString('hex');
+	SerialMessageHandler(dataHex) {
+		//console.log('[Serial] Receive interval: ', new Date()-this._lastReceive, 'ms ->', dataHex.toString('hex'));
+		this._lastReceive = new Date();
 
-		if (CONST.FILTER.includes(packet)) {
-			//log("Filtered Packet : ", packet)
-		} else {
-			//log("Not filtered Packet : ", packet)
+		// 수신된 package list에서 찾는다.
+		var receivedMsg = this._receivedMsgs.find(e => e.codeHex.equals(dataHex));
+		// 이전에 수신된 것이 아니면 새로 생성하여 list에 추가한다.
+		if (!receivedMsg) {
+			// dataHex[1] 바이트가 command이므로 이를 기반으로 명령을 구분한다.
+			var foundMsgInfo = CONST.MSG_INFO.find(e => e.cmdCode == dataHex[1]);
+
+			receivedMsg = {
+				code: dataHex.toString('hex'),
+				codeHex: dataHex,
+				count: 0,
+				info: foundMsgInfo
+			};
+			this._receivedMsgs.push(receivedMsg);
+			log("[Serial] New received : " + JSON.stringify(receivedMsg));
+		}
+		receivedMsg.count++;
+		receivedMsg.lastlastReceive = receivedMsg.lastReceive;
+		receivedMsg.lastReceive = this._lastReceive;
+
+		// checksum 확인
+		receivedMsg.checksum = this.CalcChecksum(dataHex);
+		if (receivedMsg.checksum != 0) {
+			log("[Serial] Checksum is not match - " + receivedMsg.code + ", checksum : 0x" + receivedMsg.checksum.toString(16));
+			//return;
 		}
 
-		if (this._packets[packet]) {
-			this._packets[packet]++;
-		} else {
-			this._packets[packet] = 1;
-			// 최초로 발생한 패킷만 출력
-			log("[Serial] New packet : ", packet)
+		// 관리되지 않는(모르는) message는 처리하지 않는다.
+		if (!receivedMsg.info || !receivedMsg.info.managed) {
+			//log("[Serial] Drop Unmanaged message - " + receivedMsg.code);
+			return;
 		}
 
-		// 첫번째 바이트가 'b0'이 아니면 요청 메세지이므로 처리하지 않는다.
-		if (data[0] != 0xb0) return;
-		// 두번째 바이트는 명령 종류
-		switch (data[1]) {
-			case 0x79: 	// 조명 상태 정보
-				var objFoundArr = CONST.DEVICE_STATE.filter(obj => data.equals(obj.stateHex));
-				objFoundArr.forEach((objFound) => {
-					this.UpdateDeviceStatus(objFound);
-				});
-				break;
-			case 0x4e: 	// 환풍기 상태 정보
-				var objFound = CONST.DEVICE_STATE.find(obj => data.equals(obj.stateHex));
-				if (objFound)
-					this.UpdateDeviceStatus(objFound);
-				break;
-			case 0x7c: 	// 온도조절기 상태 정보
-				var objFound = CONST.DEVICE_STATE.find(obj => data.includes(obj.stateHex));	// 메시지 앞부분 매칭(온도부분 제외)
-				if (objFound && data.length === 8) {		// 메시지 길이 확인
-					objFound.property.setTemp = data[4].toString();		// 설정 온도
-					objFound.property.curTemp = data[5].toString();		// 현재 온도
-					this.UpdateDeviceStatus(objFound);
-				}
-				break;
-			// 제어 명령 Ack 메시지 : 조명, 난방, 난방온도, 환풍기
-			case 0x7a: case 0x7d: case 0x7f: case 0x4f:
-				// Ack 메시지를 받은 명령은 제어 성공하였으므로 명령큐에서 삭제
-				const ack = Buffer.alloc(3);
-				data.copy(ack, 0, 1, 4);
-				var objFoundIdx = this._commandQueue.findIndex(obj => obj.commandHex.includes(ack));
-				if (objFoundIdx > -1) {
-					log('[Serial] Success command:', data.toString('hex'));
-					this._commandQueue.splice(objFoundIdx, 1);
-				}
-				break;
-			default:
-			//log('unknown response : ' + data.toString('hex'));
+		// dataHex[0] 바이트가 'b0'이 아닌것은 ack가 아닌 요청 메세지이므로 처리하지 않는다.
+		if (dataHex[0] != 0xb0) {
+			//log("[Serial] Skip request message - " + receivedMsg.code);
+			return;
+		}
+
+		// packet length 확인
+		if (receivedMsg.info.len != dataHex.length) {
+			log("[Serial] Message length is not match. drop message - " + receivedMsg.code + ". expected len : " + receivedMsg.info.len + ", real len : " + dataHex.length);
+			return;
+		}
+
+		
+
+		if (receivedMsg.info.req == 'get') {
+			// 상태 조회 요청에 대한 ack를 받았으면, 상태값을 내부 관리 데이터에 반영한다.
+			switch (receivedMsg.info.type) {
+				case 'light':
+					// dataHex[2] : 조명갯수 (31: 3개, 21: 2개)
+					// dataHex[3] : 조명상태 (최하단 bit 부터 조명 on/off 여부)					
+					// 조명 갯수 읽어오기
+					let lightNum = parseInt(dataHex.toString('hex')[4]);	// b079310078 --> 3 : dataHex를 hex형태의 string으로 변환 후 4번 자리의 값을 숫자로 변환
+					for(let i = 0 ; i < lightNum ; i++) {
+						let deviceId = receivedMsg.info.type + (i + 1).toString();
+						let switchValue = ( dataHex[3] & (1 << i) ) ? 'on' : 'off'; // dataHex[3] 의 값을 bit 연산하여 상태값 읽어오기
+						this.UpdateDeviceProperty(receivedMsg.info.type, deviceId, 'switch', switchValue);
+					}
+					break;
+				case 'thermostat':
+					// dataHex[2] : 방번호
+					// dataHex[3] : mode (00:off, 01:on)
+					// dataHex[4] : 설정온도
+					// dataHex[5] : 현재온도
+					// dataHex[6] : 무조건 FF
+					// dataHex[7] : checksum
+					let deviceId = receivedMsg.info.type + dataHex[2].toString();
+					this.UpdateDeviceProperty(receivedMsg.info.type, deviceId, 'mode', dataHex[3] ? 'heat' : 'off');
+					this.UpdateDeviceProperty(receivedMsg.info.type, deviceId, 'setTemp', dataHex[4].toString());
+					this.UpdateDeviceProperty(receivedMsg.info.type, deviceId, 'curTemp', dataHex[5].toString());
+					break;
+				case 'vent':
+					break;
+				case 'intLight':
+					break;
+				case 'gasValve':
+					break;
+				case 'intControl':
+					break;
+			}
+		} else {
+			// 제어 요청에 대한 ack를 받은 것이라면, 제어 성공했으므로 명령큐에서 삭제
+			// var foundIdx = this._commandQueue.findIndex(e => ((receivedMsg.info.deviceCode == e.commandHex[0]) && (receivedMsg.info.cmdCode == e.commandHex[1])));
+			// while (foundIdx > -1) {
+			// 	log('[Serial] Success command:', dataHex.toString('hex'));
+			// 	this._commandQueue.splice(foundIdx, 1);
+			// 	var foundIdx = this._commandQueue.findIndex(e => ((receivedMsg.info.deviceCode == e.commandHex[0]) && (receivedMsg.info.cmdCode == e.commandHex[1])));
+			// }
+			
+			var foundIdx = this._serialCmdQueue.findIndex(e => (receivedMsg.info.cmdCode == e.cmdHex[1]));
+			while (foundIdx > -1) {
+				log('[Serial] Success command:', dataHex.toString('hex'));
+				this._serialCmdQueue.splice(foundIdx, 1);
+				var foundIdx = this._serialCmdQueue.findIndex(e => (receivedMsg.info.cmdCode == e.cmdHex[1]));
+			}
 		}
 	}
 
@@ -448,23 +373,24 @@ class RS485server {
 	// SerialPort로 제어 명령 전송
 	ProcessSerialCommand() {
 		// 큐에 처리할 메시지가 없으면 종료
-		if (this._commandQueue.length == 0) return;
+		if (this._serialCmdQueue.length == 0) return;
+		
 
 		// 기존 홈넷 RS485 메시지와 충돌하지 않도록 Delay를 줌
-		var delay = (new Date().getTime()) - this._lastReceive;
+		var delay = new Date() - this._lastReceive;
 		if (delay < CONST.SERIAL_SEND_DELAY) return;
 
 		// 큐에서 제어 메시지 가져오기
-		var obj = this._commandQueue.shift();
+		var serialCmd = this._serialCmdQueue.shift();		
 
 		// serial port에 해당 hex command를 입력한다.
-		this._serialPort.write(obj.commandHex, (err) => { if (err) return log('[Serial] Send Error: ', err.message); });
-		this._lastReceive = new Date().getTime();
-		obj.sentTime = this._lastReceive;	// 명령 전송시간 sentTime으로 저장
-		log('[Serial] Send to Device:', obj.deviceId, '->', obj.state, '(' + delay + 'ms) ', obj.commandHex.toString('hex'));
+		this._serialPort.write(serialCmd.cmdHex, (err) => { if (err) return log('[Serial] Send Error: ', err.message); });
+		this._lastReceive = new Date();
+		serialCmd.sentTime = this._lastReceive;	// 명령 전송시간 sentTime으로 저장
+		log('[Serial] Send to Device:' + serialCmd.deviceId + '-' + serialCmd.property + '->', serialCmd.value, '(' + delay + 'ms) ', serialCmd.cmdHex.toString('hex'));
 
 		// 다시 큐에 저장하여 Ack 메시지 받을때까지 반복 실행
-		this._commandQueue.push(obj);
+		this._serialCmdQueue.push(serialCmd);
 	}
 
 	//////////////////////////////////////////////////////////////////////////////////////
@@ -486,96 +412,99 @@ class RS485server {
 		return property;
 	}
 
-	SetDeviceProperty(deviceSubId, property, value) {
-		log('[SetDeviceProperty] ' + deviceSubId + ' - ' + property + ' : ' + value);
-		var objFound = null;
-	
-		// 온도설정 명령의 경우 모든 온도를 Hex로 정의해두기에는 많으므로 온도에 따른 시리얼 통신 메시지 생성
-		if (property === 'setTemp') {
-			objFound = CONST.DEVICE_COMMAND.find(obj => obj.deviceId === deviceSubId && obj.hasOwnProperty('setTemp'));
-			objFound.commandHex[3] = Number(value);
-			objFound.setTemp = String(Number(value)); // 온도값은 소수점이하는 버림
-			var xorSum = objFound.commandHex[0] ^ objFound.commandHex[1] ^ objFound.commandHex[2] ^ objFound.commandHex[3] ^ 0x80
-			objFound.commandHex[7] = xorSum; // 마지막 Byte는 XOR SUM
-		}
-		// Light의 경우 하나의 deviceId로 여러개의 light를 제어하므로 변환로직 필요
-		// else if (deviceSubId === 'Light1' && property === 'switch') {
-		// 	objFound = CONST.DEVICE_COMMAND.find(obj => obj.deviceId === 'Light1' && obj['power1'] === value);
-		// }
-		// else if (deviceSubId === 'Light2' && property === 'switch') {
-		// 	objFound = CONST.DEVICE_COMMAND.find(obj => obj.deviceId === 'Light1' && obj['power2'] === value);
-		// }
-		// 다른 명령은 미리 정의해놓은 값을 매칭
-		else {
-			objFound = CONST.DEVICE_COMMAND.find(obj => obj.deviceId === deviceSubId && obj.property[property] === value);
-		}
-	
-		if (objFound == null) {
-			throw new Error("Can not find command");
-		}
+	SetDeviceProperty(deviceId, propertyName, propertyValue) {
+		log('[Server] ' + deviceId + ' - ' + propertyName + ' : ' + propertyValue);
 	
 		// 현재 상태와 같으면 Skip
-		if (value === this._deviceStatusCache[objFound.deviceId + objFound.property[property]]) {
-			log('Value is not changed. skip.');
-			return;
+		// if (propertyValue === this._deviceStatusCache[deviceId + propertyName]) {
+		// 	log('[Server] property value is same with before. skip.');
+		// 	return;
+		// }
+
+		var type = this.GetDeviceStatus(deviceId).type;
+		log('type : ' + type);
+
+		var msgInfo = CONST.MSG_INFO.find(e => ((e.req == 'set') && (e.type == type) && (e.propertyName == propertyName)));
+		log('msgInfo : ' + JSON.stringify(msgInfo));
+		var cmdHex = Buffer.alloc(msgInfo.len);
+		cmdHex[0] = msgInfo.deviceCode;
+		cmdHex[1] = msgInfo.cmdCode;
+		
+		switch (type) {
+			case 'light':
+				cmdHex[2] = Number(deviceId.substr(deviceId.length - 1));// deviceId의 끝자리 숫자
+				cmdHex[3] = Number(propertyValue == 'on');	// 'on' : 1, 'off' : 0
+				break;
+			case 'thermostat':
+				cmdHex[2] = Number(deviceId.substr(deviceId.length - 1));	// deviceId의 끝자리 숫자
+				if (propertyName == 'mode') {
+					cmdHex[3] = Number(propertyValue == 'heat');	// 'heat' : 1, 'off' : 0
+				} else if (propertyName == 'setTemp') {
+					cmdHex[3] = Number(propertyValue);	// 설정 온도 문자열을 숫자로 변환
+				}
+				break;
+			case 'vent':
+				break;
+			case 'intLight':
+				break;
+			case 'gasValve':
+				break;
+			case 'intControl':
+				break;
 		}
-	
+		// checksum 붙이기
+		cmdHex[msgInfo.len - 1] = this.CalcChecksum(cmdHex);
+
 		// Serial메시지 제어명령 전송
-		log('Add to queue for applying new value.');
 		// 최초 실행시 딜레이 없도록 sentTime을 현재시간 보다 SERIAL_SEND_DELAY만큼 이전으로 설정
-		objFound.sentTime = (new Date().getTime()) - CONST.SERIAL_SEND_DELAY;
-		this._commandQueue.push(objFound);	// 실행 큐에 저장
+		log('[Server] Add to queue for applying new value. - ' + cmdHex.toString('hex'));
+		var serialCmd = {};
+		serialCmd.cmdHex = cmdHex;
+		serialCmd.sentTime = new Date() - CONST.SERIAL_SEND_DELAY;
+		serialCmd.deviceId = deviceId;
+		serialCmd.property = propertyName;
+		serialCmd.value = propertyValue;
+		this._serialCmdQueue.push(serialCmd);	// 실행 큐에 저장
 		
 		// 내부 상태정보 update 및 MQTT & ST로 상태정보 전송
-		this.UpdateDeviceStatus(objFound); // 처리시간의 Delay때문에 미리 상태 반영
+		this.UpdateDeviceProperty(type, deviceId, propertyName, propertyValue);	// 처리시간의 Delay때문에 미리 상태 반영
 	}
 
-	UpdateDeviceStatus(obj) {
-		//log('UpdateDeviceStatus: deviceId[' + obj.deviceId + '], stateHex[' + obj.stateHex.toString('hex'));
+	UpdateDeviceProperty(type, deviceId, propertyName, propertyValue) {
+		// 상태값이 없거나 상태가 같으면 반영 중지
+		let curPropertyValue = this._deviceStatusCache[deviceId + propertyName];
+		if(propertyValue === curPropertyValue) {
+			//log('[Server] The status is same as before... skip...');
+			return;
+		}
+		//log('[Server] UpdateDeviceStatus: deviceId[' + deviceId + '], stateHex[' + obj.stateHex.toString('hex') + ']');
 
-		let arrPropertyName = Object.keys(obj.property);
-		// 상태값이 아닌 항목들은 제외 [deviceId, type, stateHex, commandHex, sentTime]
-		//const arrFilter = ['deviceId', 'type', 'stateHex', 'commandHex', 'sentTime'];
-		//arrPropertyName = arrPropertyName.filter(propertyName => !arrFilter.includes(propertyName));
+		// 미리 상태 반영한 device의 상태 원복 방지
+		if(this._serialCmdQueue.length > 0) {
+			let found = this._serialCmdQueue.find(e => e.deviceId === deviceId && e.property === propertyName && e.value === curPropertyValue);
+			if(found != null) return;
+		}
 
-		// 상태값별 현재 상태 파악하여 변경되었으면 상태 반영
-		arrPropertyName.forEach( (propertyName) => {
-			// 상태값이 없거나 상태가 같으면 반영 중지
-			let curStatus = this._deviceStatusCache[obj.deviceId + propertyName];
-			if(obj.property[propertyName] == null || obj.property[propertyName] === curStatus) {
-				//log('The status is same as before... skip...');
-				return;
-			}
-	
-			//log('UpdateDeviceStatus: deviceId[' + obj.deviceId + '], stateHex[' + obj.stateHex.toString('hex') + ']');
-	
-			// 미리 상태 반영한 device의 상태 원복 방지
-			if(this._commandQueue.length > 0) {
-				let found = this._commandQueue.find(q => q.deviceId === obj.deviceId && q.property[propertyName] === curStatus);
-				if(found != null) return;
-			}
-	
-			// 상태 반영
-			this._deviceStatusCache[obj.deviceId + propertyName] = obj.property[propertyName];
-			// 이전에 없던 device이면 새로 생성한다.
-			let deviceStatus = this._deviceStatus.find(o => (o.id === obj.deviceId));
-			if (!deviceStatus) {
-				let len = this._deviceStatus.push({
-					type: obj.type,
-					id: obj.deviceId,
-					uri: '/homenet/' + obj.deviceId,
-					property: {}
-				});
-				deviceStatus = this._deviceStatus[len - 1];
-			}
-			deviceStatus.property[propertyName] = obj.property[propertyName];
+		this._deviceStatusCache[deviceId + propertyName] = propertyValue;
+		// 이전에 없던 device이면 새로 생성한다.
+		let deviceStatus = this._deviceStatus.find(o => (o.id === deviceId));
+		if (!deviceStatus) {
+			let len = this._deviceStatus.push({
+				type: type,
+				id: deviceId,
+				uri: '/homenet/' + deviceId,
+				property: {}
+			});
+			deviceStatus = this._deviceStatus[len - 1];
+		}
+		// 상태 반영
+		deviceStatus.property[propertyName] = propertyValue;
 
-			// MQTT publish
-			this.UpdateMQTTDeviceStatus(obj.deviceId, propertyName, obj.property[propertyName]);
-	
-			// SmartThings send event
-			this.UpdateSTDeviceStatus(obj.deviceId, propertyName, obj.property[propertyName]);
-		});
+		// MQTT publish
+		this.UpdateMQTTDeviceStatus(deviceId, propertyName, propertyValue);
+
+		// SmartThings send event
+		this.UpdateSTDeviceStatus(deviceId, propertyName, propertyValue);
 	}
 
 	//////////////////////////////////////////////////////////////////////////////////////
@@ -586,7 +515,7 @@ class RS485server {
 		app.use(express.json());
 		
 		http.createServer(app).listen(CONST.HTTP_PORT, () => {
-			log("[ST    ] 485server http server listening on port " + CONST.HTTP_PORT);
+			log("[HTTP  ] 485server http server listening on port " + CONST.HTTP_PORT);
 		});
 
 		// root path로 접근하면 homenet으로 redirect 함
@@ -601,21 +530,22 @@ class RS485server {
 		app.post('/smartthings/installed', 			(req, res) => this.HTTPCommonHandler(req, res, this.HTTP_post_smartthings_installed.bind(this)));		
 		app.post('/smartthings/uninstalled',		(req, res) => this.HTTPCommonHandler(req, res, this.HTTP_post_smartthings_uninstalled.bind(this)));
 		app.get ('/status', 						(req, res) => this.HTTPCommonHandler(req, res, this.HTTP_get_status.bind(this)));
-		app.get ('/packets', 						(req, res) => this.HTTPCommonHandler(req, res, this.HTTP_get_packets.bind(this)));
 		app.get ('/log', 							(req, res) => this.HTTPCommonHandler(req, res, this.HTTP_get_log.bind(this)));
+		app.get ('/received', 						(req, res) => this.HTTPCommonHandler(req, res, this.HTTP_get_received.bind(this)));
 	}
 
 	HTTPCommonHandler(req, res, callback) {
-		log('[' + req.method + '] ' + req.url);
+		log('[HTTP  ] ' + req.method + ' : ' + req.url);
 		var result = {};
 		try {
 			result = callback(req);
 			res.status(200);
+			log('[HTTP  ] result : OK');
 		} catch (e) {
 			result.message = e.toString();
 			res.status(400);
+			log('[HTTP  ] result : FAIL - ' + e.stack);
 		}
-		log('[result] : ' + JSON.stringify(result));
 		res.send(result);
 	}
 
@@ -672,21 +602,82 @@ class RS485server {
 		return { message: status };
 	}
 
-	HTTP_get_packets(req) {
-		var packetList = [];
-		for (const packet in this._packets) {
-			if (this._packets.hasOwnProperty(packet)) {				
-				var item = { name: packet, count: this._packets[packet] };
-				packetList.push(item);
-			}
-		}
-		return { packets: packetList };
-	}
-
 	HTTP_get_log(req) {
 		var result = "<pre>";
 		result += fs.readFileSync('log', 'utf8')
 		result += "</pre>";
+		return result;
+	}
+
+	HTTP_get_received(req) {
+		const filter = [
+			"cc4101000c",
+			"b041010070",
+			"a15a007b",
+			"a25a0078",
+			"a35a0079",
+			"a45a007e",
+			"a6410067",
+			"a5410064",
+			"ab41006a",
+			"ac41006d",
+			"b0410071",
+			"b0410170",
+		];
+		var managedStr = "";
+		var knownStr = "";
+		var filteredStr = "";
+		var unknownStr = "";
+
+		var result = '<pre>';
+		result += "U  Serial message       CS   Type         Req   Managed   Count   Period   Time(ms)   Last received\n";
+		result += "=============================================================================================================\n";
+		for (let i in this._receivedMsgs) {
+			let msg = this._receivedMsgs[i];
+			let isUpdated = (msg.lastCount != msg.count) ? "*  " : "   ";
+			let cs = (msg.checksum == 0) ? ' OK ' : '0x' + msg.checksum.toString(16).padStart(2, '0');
+			let type = msg.info ? msg.info.type : "";
+			let req = msg.info ? msg.info.req : "   ";
+			let managed = (msg.info && msg.info.managed) ? "O "  : "X ";
+			let period = (msg.lastReceive - msg.lastlastReceive).toString();
+			let time = (new Date() - msg.lastReceive).toString();
+
+			let str = 
+				isUpdated +
+				msg.code.padEnd(20, ' ') +
+				cs + '  ' +
+				type.padEnd(12, ' ') + ' ' +
+				req + '      ' +
+				managed +
+				msg.count.toString().padStart(10, ' ') + ' ' +
+				period.padStart(8, ' ') + ' ' +
+				time.padStart(10, ' ') + '   ' +
+				msg.lastReceive.toISOString().replace('T', ' ').replace('Z', '') +
+				'\n';			
+			msg.lastCount = msg.count;
+
+			if (msg.info) {
+				if (msg.info.managed) {
+					managedStr += str;
+				} else {
+					knownStr += str;
+				}
+			} else if (filter.includes(msg.code)) {
+				filteredStr += str;
+			} else {
+				unknownStr += str;
+			}
+		}
+		
+		result += "-- Known & Managed messages ---------------------------------------------------------------------------------\n";
+		result += managedStr;
+		result += "-- Known but unmanaged messages -----------------------------------------------------------------------------\n";
+		result += knownStr;
+		result += "-- Filtered messages ----------------------------------------------------------------------------------------\n";
+		result += filteredStr;
+		result += "-- Unknown messages -----------------------------------------------------------------------------------------\n";
+		result += unknownStr;
+		result += '</pre>';
 		return result;
 	}
 }
