@@ -83,59 +83,30 @@ def parse(String description) {
 def setThermostatMode(mode) {
 	log.debug "Executing 'setThermostatMode' value : ${mode}"
     setProperty("mode", mode)
-    //if (mode == "off") {
-    //	sendEvent(name:"switch", value:"off")
-    //} else {
-    //	sendEvent(name:"switch", value:"on")
-    //}
-    //sendEvent(name:"thermostatMode", value:mode)
 }
 
 def setHeatingSetpoint(setTemp) {
 	log.debug "Executing 'setHeatingSetpoint' value: ${setTemp}"
     setProperty("setTemp", "${setTemp}")
-    //sendEvent(name:"heatingSetpoint", value:setTemp)
 }
 
 def heat() {
 	log.debug "Executing 'heat'"
     setProperty("mode", "heat")
-    //sendEvent(name:"switch", value:"on")
-    //sendEvent(name:"thermostatMode", value:"heat")
 }
 
 def off() {
 	log.debug "Executing 'off'"
     setProperty("mode", "off")
-    //sendEvent(name:"switch", value:"off")
-    //sendEvent(name:"thermostatMode", value:"off")
 }
 
 def on() {
 	log.debug "Executing 'on' --> set mode to 'heat'"
     setProperty("mode", "heat")
-    //sendEvent(name:"switch", value:"on")
-    //sendEvent(name:"thermostatMode", value:"heat")
 }
 
 def refresh() {
 	log.debug "Executing 'refresh'"
-    
-    
-    // Gets the most recent State for the given attribute
-    log.debug "currentState of supportedThermostatModes : ${device.currentState("supportedThermostatModes")}"
-    log.debug "currentValue of supportedThermostatModes : ${device.currentValue("supportedThermostatModes")}"
-    //log.debug "currentState of thermostatMode : ${device.currentState("thermostatMode")}"
-    //log.debug "latestState 	of thermostatMode : ${device.latestState("thermostatMode")}"    
-    //log.debug "currentValue of thermostatMode : ${device.currentValue("thermostatMode")}"
-    //log.debug "latestValue 	of thermostatMode : ${device.latestValue("thermostatMode")}"
-    
-    //log.debug "displayName : ${device.displayName}"
-    //log.debug "id : ${device.id}"
-    //log.debug "name : ${device.name}"
-    //log.debug "label : ${device.label}"
-    
-    
     try{
         def options = [
             "method": "GET",
@@ -159,7 +130,9 @@ def refreshCallback(physicalgraph.device.HubResponse hubResponse) {
     try {
         msg = parseLanMessage(hubResponse.description)
         log.debug msg.json
-       	updateDevice(msg.json)
+        updateProperty("mode", msg.json.property.mode)
+    	updateProperty("setTemp", msg.json.property.setTemp)
+    	updateProperty("curTemp", msg.json.property.curTemp)
 	} catch (e) {
         log.error("Exception caught while parsing data: "+e)
     }
@@ -169,8 +142,8 @@ def refreshCallback(physicalgraph.device.HubResponse hubResponse) {
 
 def init(data) {
 	log.debug "init >> ${data}"
-    sendEvent(name: "supportedThermostatModes", value: ["heat", "off"])    
-    //updateDevice(data)
+    log.debug "supportedThermostatModes : ${["heat", "off"]}"
+    sendEvent(name: "supportedThermostatModes", value: ["heat", "off"])
 }
 
 def setUrl(String url){
@@ -183,21 +156,25 @@ def setPath(String path){
     state.path = path
 }
 
-def updateDevice(data) {
-	log.debug "updateDevice - ${data}"
-    if (data.property.mode) {
-    	sendEvent(name: "thermostatMode", value: data.property.mode)
-    	if (data.property.mode == "off") {
-    		sendEvent(name:"switch", value:"off")
-    	} else {
-	    	sendEvent(name:"switch", value:"on")
-    	}
-    }    
-    if (data.property.setTemp) {
-    	sendEvent(name: "heatingSetpoint", value: data.property.setTemp)
-    }
-    if (data.property.curTemp) {
-    	sendEvent(name: "temperature", value: data.property.curTemp)
+def updateProperty(propertyName, propertyValue) {
+	log.debug "updateProperty - ${propertyName} : ${propertyValue}"
+    switch(propertyName) {
+        case "mode":
+            sendEvent(name: "thermostatMode", value: propertyValue)
+    		if (propertyValue == "off") {
+    			sendEvent(name:"switch", value:"off")
+    		} else {
+	    		sendEvent(name:"switch", value:"on")
+    		}
+            break
+        case "setTemp":
+            sendEvent(name: "heatingSetpoint", value: propertyValue)
+            break
+        case "curTemp":
+            sendEvent(name: "temperature", value: propertyValue)
+            break
+        default:
+            log.debug "UNKNOWN PROPERTY!!"
     }
 }
 
@@ -205,7 +182,6 @@ def updateDevice(data) {
 
 def setProperty(String name, String value) {
 	try{    
-		log.debug "Try to set data to ${state.address}"
         def options = [
             "method": "PUT",
             "path": state.path + "/" + name + "/" + value,
@@ -214,7 +190,7 @@ def setProperty(String name, String value) {
                 "Content-Type": "application/json"
             ]
         ]
-        log.debug "options : ${options}"
+        log.debug "setProperty - send to 485server : ${options}"
         def myhubAction = new physicalgraph.device.HubAction(options, null, [callback: setPropertyCallback])
         sendHubCommand(myhubAction)
     }catch(e){

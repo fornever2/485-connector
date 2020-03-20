@@ -86,7 +86,7 @@ def refreshCallback(physicalgraph.device.HubResponse hubResponse) {
     try {
         msg = parseLanMessage(hubResponse.description)
         log.debug msg.json
-        updateDevice(msg.json)
+        updateProperty("switch", msg.json.property.switch)
 	} catch (e) {
         log.error("Exception caught while parsing data: "+e)
     }
@@ -95,7 +95,6 @@ def refreshCallback(physicalgraph.device.HubResponse hubResponse) {
 
 def init(data) {
 	log.debug "init >> ${data}"
-    //updateDevice(data)
 }
 
 def setUrl(String url){
@@ -108,17 +107,15 @@ def setPath(String path){
     state.path = path
 }
 
-def updateDevice(data) {
-	log.debug "updateDevice - ${data}"
-	state.cur_value = data.property.switch
-	sendEvent(name:"switch", value:state.cur_value)
+def updateProperty(propertyName, propertyValue) {
+	log.debug "updateProperty - ${propertyName} : ${propertyValue}"
+    sendEvent(name:propertyName, value:propertyValue)
 }
 
 ////////////////////////////////////////////////////////////////
 
 def setProperty(String name, String value) {
 	try{    
-		log.debug "Try to set data to ${state.address}"
         def options = [
             "method": "PUT",
             "path": state.path + "/" + name + "/" + value,
@@ -127,7 +124,7 @@ def setProperty(String name, String value) {
                 "Content-Type": "application/json"
             ]
         ]
-        log.debug "options : ${options}"
+        log.debug "setProperty - send to 485server : ${options}"
         def myhubAction = new physicalgraph.device.HubAction(options, null, [callback: setPropertyCallback])
         sendHubCommand(myhubAction)
     }catch(e){
