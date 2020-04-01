@@ -289,6 +289,10 @@ This table shows the statistics of every parsed serial messages including manage
 
 ***TBD***
 
+## Write serial message
+
+***TBD***
+
 # How to add/modify serial message handler
 
 ***TBD***
