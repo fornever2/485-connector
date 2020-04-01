@@ -29,7 +29,7 @@ See the [Manual](doc/install/smartapp/README.md) file for details
 2. Click `My SmartApps`
 3. Click `New SmartApp`
 4. Click `From Code`
-5. Copy content of `485-connector.groovy` & Paste
+5. Copy content of [`485-connector.groovy`](smartapps/fornever2/485-connector.src/485-connector.groovy) & Paste
 6. Click `Create`
 7. Click `My SmartApps` & `Edit properties` (485-connector)
 8. Click `OAuth` option and click on the `Enable OAuth` button
