@@ -3,7 +3,6 @@
 	"append": true,
 	"watch": true,
 	"watchIgnore": true,
-	//"fifo": true,
 	"script": "index.js",
 	"sourceDir": "/home/pi/github/485-connector/485server",
 	"workingDir": "/home/pi/github/485-connector/485server",
