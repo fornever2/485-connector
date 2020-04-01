@@ -15,9 +15,9 @@ SmartThings connector for RS485 homenet devices.
 # How to install
 
 485-connector consists of three main parts.
-- 485server : node.js server which connected to RS485 serial port and provide information to SmartThings cloud.
-- SmartApp : SmartThings service application which communicates with 485server.
-- DTH (Device Type Handler) : SmartThings device handler codes for each devices of RS485 homenet.
+- **485server** : node.js server which connected to RS485 serial port and provide information to SmartThings cloud.
+- **SmartApp** : SmartThings service application which communicates with 485server.
+- **DTH (Device Type Handler)** : SmartThings device handler codes for each devices of RS485 homenet.
 
 ## Install 485server
 
