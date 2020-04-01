@@ -20,7 +20,7 @@ SmartThings connector for RS485 homenet devices.
 ## Install 485server
 
 Clone or download this repository and run `npm install`
-``` bash
+```bash
 $ git clone git@github.com:fornever2/485-connector.git
 $ cd 485-connector/485server
 $ npm install
@@ -104,7 +104,7 @@ See the [Manual](doc/install/smartapp/README.md) file for details
 ## Run 485server
 
 485server is based on node.js. So, you can run with below command.
-``` bash
+```bash
 $ cd 485-connector/485server
 $ node index.js
 ```
@@ -112,7 +112,7 @@ But, this can not be run all the time even though you exited the shell.
 This can be useful when you analyze the serial message or debug, but you might need the method the consistant service running.  
 In order to solve this problem, I used [`forever`](https://www.npmjs.com/package/forever) service.  
 You can install `forever` service with below command. (I added `-g` option in order to install globally.)  
-``` bash
+```bash
 $ npm install -g forever
 ```
 And I also added [`forever.json`](485server/forever.json) file which has options for running server.  
@@ -142,7 +142,7 @@ Forever service stores log file on the path described in [`forever.json`](485ser
   "logFile": "/home/pi/github/485-connector/485server/log/server.log"
 ```
 Since the log is written in file, in order to see the live log from shell with `tail` command like below.  
-``` bash
+```bash
 $ tail -f /home/pi/github/485-connector/485server/log/server.log
 ```
 Or, if the 485server is successfully running, you can get log from webbrowser with below url.  
@@ -165,7 +165,7 @@ Then, the log will be backup as renamed file with format `server-<date>-<time>.l
 Since too many serial messages are comming from RS485 serial port, it is hard to see and store log files.  
 So, I added configure options to enable/disable log for each serial messages.  
 You can set `log` property to `true` or `false` at the `CONST.MSG_INFO` json object in file [`485server/index.js`](485server/index.js).
-``` javascript
+```javascript
 ...
 MSG_INFO: [
 	{ prefix: 0xac, cmdCode: 0x7a, len: 5, log: true, req: 'set', type: 'light', property: { switch: 'off' }, managed: true },
