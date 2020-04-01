@@ -81,10 +81,12 @@ See the [Manual](doc/install/smartapp/README.md) file for details
 7. Check the checkbox for the device types you need (or all of them) in the `New (only in GitHub)` column
 8. Check the `Publish` checkbox and click on the `Execute Update` button
 
-# Configuration
-- Serial Port
+# How to setup
+<span style="color:red">TBD</span>
+## Configure 485server
+### Serial Port
 
-# Run 485server
+## Run 485server
 485server is based on node.js. So, you can run with below command.
 ``` bash
 $ cd 485-connector/485server
@@ -98,7 +100,7 @@ You can install `forever` service with below command. (I added `-g` option in or
 $ npm install -g forever
 ```
 And I also added [`forever.json`](485server/forever.json) file which has options for running server.  
-<span style="color:red">**NOTE THAT forever.json FILE SHOULD BE MODIFIED IF THE PATH OF SERVER FILE IS DIFFERENT.**</span>  
+**NOTE THAT `forever.json` FILE SHOULD BE MODIFIED IF THE PATH OF SERVER FILE IS DIFFERENT.**  
 Also, you might need to run forever service when booting raspberry pi.  
 It can be done by adding below lines to the bashrc script file of your system.  
 ```
@@ -106,14 +108,17 @@ mkdir -p ~/github/485-connector/485server/log
 forever start ~/github/485-connector/485server/forever.json
 ```
 
-# Analysis
+## Install 485-connector SmartApp into SmartThings app
+
+
+# How to analyze serial message
 ## Parse serial message for each homenet
 
 ## Device Status
 [Device Status 분석](https://github.com/fornever2/485-connector/blob/master/serial_analysis_sds.md)
 
 ## Log
-### Watching Log
+### Watch Log
 Forever service stores log file on the path described in [`forever.json`](485server/forever.json) file like below.  
 ```
   "logFile": "/home/pi/github/485-connector/485server/log/server.log"
@@ -144,5 +149,6 @@ MSG_INFO: [
 	{ prefix: 0xac, cmdCode: 0x7a, len: 5, log: true, req: 'set', type: 'light', property: { switch: 'off' }, managed: true },
 ...
 ```
+
 
 # How to add/modify serial message handler
