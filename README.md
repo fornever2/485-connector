@@ -18,7 +18,7 @@ SmartThings connector for RS485 homenet devices.
 Clone or download this repository and run `npm install`
 ```
 $ git clone git@github.com:fornever2/485-connector.git
-$ cd 485-connector
+$ cd 485-connector/485server
 $ npm install
 ```
 
@@ -83,6 +83,28 @@ See the [Manual](doc/install/smartapp/README.md) file for details
 
 # Configuration
 - Serial Port
+
+# Run 485Server
+485server is based on node.js. So, you can run with below command.
+```
+$ cd 485-connector/485server
+$ node index.js
+```
+But, this can not be run all the time even though you exited the shell.  
+This can be useful when you analyze the serial message or debug, but you might need the method the consistant service running.  
+In order to solve this problem, I used [forever](https://www.npmjs.com/package/forever) service.  
+You can install forever service with below command. (I added -g option in order to install globally.)  
+```
+$ npm install -g forever
+```
+And I also added [forever.json](485server/forever.json) file which has options for running server.  
+**NOTE THAT forever.json FILE SHOULD BE FMODIFIED IF THE PATH OF SERVER FILE IS DIFFERENT.**
+Also, you might need to run forever service when booting raspberry pi.
+It can be done by adding below lines to the bashrc script file of your system.
+```
+mkdir -p ~/github/485-connector/485server/log
+forever start ~/github/485-connector/485server/forever.json
+```
 
 # Analysis
 ## Parse serial message for each homenet
