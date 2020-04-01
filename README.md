@@ -98,7 +98,7 @@ You can install `forever` service with below command. (I added `-g` option in or
 $ npm install -g forever
 ```
 And I also added [`forever.json`](485server/forever.json) file which has options for running server.  
-**NOTE THAT forever.json FILE SHOULD BE MODIFIED IF THE PATH OF SERVER FILE IS DIFFERENT.**  
+<span style="color:red">**NOTE THAT forever.json FILE SHOULD BE MODIFIED IF THE PATH OF SERVER FILE IS DIFFERENT.**</span>  
 Also, you might need to run forever service when booting raspberry pi.  
 It can be done by adding below lines to the bashrc script file of your system.  
 ```
@@ -113,24 +113,36 @@ forever start ~/github/485-connector/485server/forever.json
 [Device Status 분석](https://github.com/fornever2/485-connector/blob/master/serial_analysis_sds.md)
 
 ## Log
-Forever service stores log file on the path described in [`forever.json`](485server/forever.json) file like below.
+### Watching Log
+Forever service stores log file on the path described in [`forever.json`](485server/forever.json) file like below.  
 ```
   "logFile": "/home/pi/github/485-connector/485server/log/server.log"
 ```
-Since the log is written in file, in order to see the live log from shell with `tail` command like below.
+Since the log is written in file, in order to see the live log from shell with `tail` command like below.  
 ```
 $ tail -f /home/pi/github/485-connector/485server/log/server.log
 ```
-Or, if the 485server is successfully running, you can get log from webbrowser with below url.
+Or, if the 485server is successfully running, you can get log from webbrowser with below url.  
 ```
 http://<ip-address>:<port-number>/log
 ex) http://192.168.29.100:8080/log
 ```
-Sometimes it fails to get log if the log is too big. Then, you can reset log with below url.
+### Reset Log File
+Sometimes it fails to get log if the log is too big. Then, you can reset log with below url.  
 ```
 http://<ip-address>:<port-number>/resetlog
 ex) http://192.168.29.100:8080/resetlog
 ```
-Then, the log will be backup as renamed file with format `server-<date>-<time>.log` and restart to log.
+Then, the log will be backup as renamed file with format `server-<date>-<time>.log` and restart to log.  
+### Configure Log
+Since too many serial messages are comming from RS485 serial port, it is hard to see and store log files.  
+So, I added configure options to enable/disable log for each serial messages.  
+You can set `log` property to `true` or `false` at the `CONST.MSG_INFO` json object in file [`485server/index.js`](485server/index.js).
+```
+...
+MSG_INFO: [
+	{ prefix: 0xac, cmdCode: 0x7a, len: 5, log: true, req: 'set', type: 'light', property: { switch: 'off' }, managed: true },
+...
+```
 
 # How to add/modify serial message handler
