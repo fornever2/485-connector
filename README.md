@@ -149,7 +149,10 @@ In my case, my apartment has Samsung SDS homenet system.
 
 ### Watch Log
 
-Forever service stores log file on the path described in [`forever.json`](485server/forever.json) file like below.  
+If you started 485server with `$ node index.js` command, console log will be shown on console.  
+But, if you started 485server with `forever` service, log will not be shown on console.
+Then, you can use below ways to watch log.  
+`Forever` service stores log file on the path described in [`forever.json`](485server/forever.json) file like below.  
 ```
   "logFile": "/home/pi/github/485-connector/485server/log/server.log"
 ```
