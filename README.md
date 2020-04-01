@@ -115,7 +115,6 @@ forever start ~/github/485-connector/485server/forever.json
 ## Parse serial message for each homenet
 
 ## Device Status
-[Device Status 분석](https://github.com/fornever2/485-connector/blob/master/serial_analysis_sds.md)
 
 ## Log
 ### Watch Log
