@@ -1,20 +1,24 @@
 # 485-connector
+
 SmartThings connector for RS485 homenet devices.
 
 # Overview
 
 # Prerequisites
+
 - SmartThings account
 - RS485 to Serial
 - Node.js and npm installed local server (Raspberry Pi, Linux Server, etc.)
 
 # How to install
+
 485-connector consists of three main parts.
 - 485server : node.js server which connected to RS485 serial port and provide information to SmartThings cloud.
 - SmartApp : SmartThings service application which communicates with 485server.
 - DTH (Device Type Handler) : SmartThings device handler codes for each devices of RS485 homenet.
 
 ## Install 485server
+
 Clone or download this repository and run `npm install`
 ``` bash
 $ git clone git@github.com:fornever2/485-connector.git
@@ -23,7 +27,9 @@ $ npm install
 ```
 
 ## Install SmartApp
+
 ### Manual install (copy & paste code)
+
 See the [Manual](doc/install/smartapp/README.md) file for details
 1. Go to the [SmartThings IDE](https://account.smartthings.com/)
 2. Click `My SmartApps`
@@ -36,8 +42,10 @@ See the [Manual](doc/install/smartapp/README.md) file for details
 9. Click `Update`
 
 ### Install SmartApp using the GitHub Repo integration
+
 > Enable the GitHub integration before continuing the installation.  
 > Perform step 1 and 2 in the [SmartThings guide](https://docs.smartthings.com/en/latest/tools-and-ide/github-integration.html#step-1-enable-github-integration) to enable the GitHub integration for your SmartThings account.
+
 1. Go to the [SmartThings IDE](https://account.smartthings.com/)
 2. Select the `My SmartApps` tab
   > Step 3 ~ 5 are only needed if the repo has not been added earlier
@@ -56,7 +64,9 @@ See the [Manual](doc/install/smartapp/README.md) file for details
 12. Click `Update` button
 
 ## Install DTH (Device Type Handler)
+
 ### Manual install (copy & paste code)
+
 1. Go to the [SmartThings IDE](https://account.smartthings.com/)
 2. Click `My Device Handlers`
 3. Click `Create New Device Handlers`
@@ -66,8 +76,10 @@ See the [Manual](doc/install/smartapp/README.md) file for details
 7. Loop until all of files are registered
 
 ### Install DTH using the GitHub Repo integration
+
 > Enable the GitHub integration before continuing the installation.  
 > Perform step 1 and 2 in the [SmartThings guide](https://docs.smartthings.com/en/latest/tools-and-ide/github-integration.html#step-1-enable-github-integration) to enable the GitHub integration for your SmartThings account.
+
 1. Go to the [SmartThings IDE](https://account.smartthings.com/)
 2. Select the `My Device Handlers` tab
   > Step 3 ~ 5 are only needed if the repo has not been added earlier
@@ -82,11 +94,15 @@ See the [Manual](doc/install/smartapp/README.md) file for details
 8. Check the `Publish` checkbox and click on the `Execute Update` button
 
 # How to setup
+
 <span style="color:red">TBD</span>
+
 ## Configure 485server
+
 ### Serial Port
 
 ## Run 485server
+
 485server is based on node.js. So, you can run with below command.
 ``` bash
 $ cd 485-connector/485server
@@ -112,12 +128,15 @@ forever start ~/github/485-connector/485server/forever.json
 
 
 # How to analyze serial message
+
 ## Parse serial message for each homenet
 
 ## Device Status
 
 ## Log
+
 ### Watch Log
+
 Forever service stores log file on the path described in [`forever.json`](485server/forever.json) file like below.  
 ```
   "logFile": "/home/pi/github/485-connector/485server/log/server.log"
@@ -131,14 +150,18 @@ Or, if the 485server is successfully running, you can get log from webbrowser wi
 http://<ip-address>:<port-number>/log
 ex) http://192.168.29.100:8080/log
 ```
+
 ### Reset Log File
+
 Sometimes it fails to get log if the log is too big. Then, you can reset log with below url.  
 ```
 http://<ip-address>:<port-number>/resetlog
 ex) http://192.168.29.100:8080/resetlog
 ```
 Then, the log will be backup as renamed file with format `server-<date>-<time>.log` and restart to log.  
+
 ### Configure Log
+
 Since too many serial messages are comming from RS485 serial port, it is hard to see and store log files.  
 So, I added configure options to enable/disable log for each serial messages.  
 You can set `log` property to `true` or `false` at the `CONST.MSG_INFO` json object in file [`485server/index.js`](485server/index.js).
