@@ -131,8 +131,6 @@ forever start ~/github/485-connector/485server/forever.json
 
 ## Parse serial message for each homenet
 
-## Device Status
-
 ## Log
 
 ### Watch Log
@@ -171,6 +169,88 @@ MSG_INFO: [
 	{ prefix: 0xac, cmdCode: 0x7a, len: 5, log: true, req: 'set', type: 'light', property: { switch: 'off' }, managed: true },
 ...
 ```
+
+## 485server Status
+If the 485server is successfully running, you can get device status and recieved serial messages status from webbrowser with below url.  
+```
+http://<ip-address>:<port-number>/status
+ex) http://192.168.29.100:8080/status
+```
+Then, you can get text looks like below.
+```
+ RS485 server - started at 4/1/2020, 8:02:40 PM
+
+ Current device Status
+=========================================================================================================================
+Type           DeviceId       Properties
+=========================================================================================================================
+light          light1         {"switch":"off"}
+light          light2         {"switch":"on"}
+thermostat     thermostat5    {"mode":"off","setTemp":18,"curTemp":26}
+thermostat     thermostat1    {"mode":"off","setTemp":18,"curTemp":27}
+thermostat     thermostat3    {"mode":"off","setTemp":18,"curTemp":26}
+thermostat     thermostat4    {"mode":"off","setTemp":18,"curTemp":26}
+SID            gasValve       {"valve":"closed"}
+SID            door           {"contact":"closed"}
+=========================================================================================================================
+
+ Recieved Serial Messages
+=========================================================================================================================
+U  Serial message       CS   Type            Req       Managed   Count   Period   slot   Time(ms)   Last received
+=========================================================================================================================
+-- Managed messages -----------------------------------------------------------------------------------------------------
+*  a15a007b             OK   sync1           sync         O         81      469      0        197   4/1/2020, 8:03:17 PM
+*  a25a0078             OK   sync2           sync         O         81      470     31        166   4/1/2020, 8:03:18 PM
+*  a35a0079             OK   sync3           sync         O         81      469     60        137   4/1/2020, 8:03:18 PM
+*  a45a007e             OK   sync4           sync         O         81      471     92        105   4/1/2020, 8:03:18 PM
+*  ac79000154           OK   light           get          O         41      460    181        486   4/1/2020, 8:03:17 PM
+*  b07921026a           OK   light           ack          O         41      459    195        472   4/1/2020, 8:03:17 PM
+   ae7c050000000057     OK   thermostat      get          O         20     1850    226       1836   4/1/2020, 8:03:16 PM
+   b07c0500121aff3e     OK   thermostat      ack          O         20     1852    253       1809   4/1/2020, 8:03:16 PM
+   ae7c010000000053     OK   thermostat      get          O         20     1849    221       1373   4/1/2020, 8:03:16 PM
+   b07c0100121bff3b     OK   thermostat      ack          O         20     1851    248       1346   4/1/2020, 8:03:16 PM
+   ae7c030000000051     OK   thermostat      get          O         20     1854    219        909   4/1/2020, 8:03:17 PM
+   b07c0300121aff38     OK   thermostat      ack          O         20     1856    247        881   4/1/2020, 8:03:17 PM
+*  ae7c040000000056     OK   thermostat      get          O         20     1859    225        443   4/1/2020, 8:03:17 PM
+*  b07c0400121aff3f     OK   thermostat      ack          O         20     1861    252        416   4/1/2020, 8:03:17 PM
+   cc0b0300020046       OK   SID             report       O          1      NaN    277      22634   4/1/2020, 8:02:55 PM
+   b00b01003a           OK   lock            ack          O          1      NaN    434      22477   4/1/2020, 8:02:55 PM
+-- Unmanaged messages ---------------------------------------------------------------------------------------------------
+*  a5410064             OK   SID-a5-41       get          X         81      471     92        105   4/1/2020, 8:03:18 PM
+*  b0410071             OK   SID-response    ack          X        162       30    131         66   4/1/2020, 8:03:18 PM
+*  a6410067             OK   SID-a6-41       get          X         81      469    121         76   4/1/2020, 8:03:18 PM
+*  ab41006a             OK   SID-gas         get          X         81      470    151         47   4/1/2020, 8:03:18 PM
+*  b0410170             OK   SID-response    ack          X         81      471    166         32   4/1/2020, 8:03:18 PM
+*  cc4101000c           OK   SID-cc-41       get          X         76      465    281        386   4/1/2020, 8:03:17 PM
+*  b041010070           OK   SID-response    ack          X         76      465    290        377   4/1/2020, 8:03:17 PM
+*  ac41006d             OK   SID-light??     get          X         40     1395    180         18   4/1/2020, 8:03:18 PM
+-- Log filtered messages ------------------------------------------------------------------------------------------------
+   b00c01003d           OK   ???-cc-0c       cb           X          1      NaN    436      23401   4/1/2020, 8:02:54 PM
+   cc0c010041           OK   ???-cc-0c       reg          X          1      NaN    276      23095   4/1/2020, 8:02:55 PM
+   cc090300200066       OK   ???-cc-09       ???          X          1      NaN    278       4100   4/1/2020, 8:03:14 PM
+   b009010038           OK   ???-cc-09       ack          X          1      NaN    434       3944   4/1/2020, 8:03:14 PM
+   cc0701004a           OK   ???-cc-07       ???          X          1      NaN    281       3633   4/1/2020, 8:03:14 PM
+   b007010137           OK   ???-cc-07       ack          X          1      NaN    441       3473   4/1/2020, 8:03:14 PM
+-- Unknown messages -----------------------------------------------------------------------------------------------------
+=========================================================================================================================
+```
+
+### Current device Status
+
+This table shows the current status of parsed and managed 485 homenet devices.
+| Column     | Description                                                                  |
+|------------|------------------------------------------------------------------------------|
+| Type       | Device type name which is related to SmartThings DTH (Device Type Handler)   |
+| DeviceId   | Device identifier which can be used by SmartThings SmartApp and DTH          |
+| Properties | Properties of device which can be referred and controlled by SmartThings DTH |
+
+### Recieved Serial Messages
+
+This table shows the statistics of every parsed serial messages including managed/unmanaged/filtered/unknown
+- Managed messages : 
+- Unmanaged messages :
+- Log filtered messages :
+- Unknown messages :
 
 
 # How to add/modify serial message handler
