@@ -213,7 +213,7 @@ SID            door           {"contact":"closed"}
 
  Recieved Serial Messages
 =========================================================================================================================
-U  Serial message       CS   Type            Req       Managed   Count   Period   slot   Time(ms)   Last received
+U  Serial message       CS   Type            Req       Managed   Count   Period   Slot    Elapsed   Last received
 =========================================================================================================================
 -- Managed messages -----------------------------------------------------------------------------------------------------
 *  a15a007b             OK   sync1           sync         O         81      469      0        197   4/1/2020, 8:03:17 PM
@@ -255,6 +255,7 @@ U  Serial message       CS   Type            Req       Managed   Count   Period 
 ### Current device Status
 
 This table shows the current status of parsed and managed 485 homenet devices.
+
 | Column     | Description                                                                  |
 |------------|------------------------------------------------------------------------------|
 | Type       | Device type name which is related to SmartThings DTH (Device Type Handler)   |
@@ -264,10 +265,24 @@ This table shows the current status of parsed and managed 485 homenet devices.
 ### Recieved Serial Messages
 
 This table shows the statistics of every parsed serial messages including managed/unmanaged/filtered/unknown
-- Managed messages : 
-- Unmanaged messages :
-- Log filtered messages :
-- Unknown messages :
+- **Managed messages** : 
+- **Unmanaged messages** :
+- **Log filtered messages** :
+- **Unknown messages** :
+
+ Column         | Description      | Details 
+----------------|------------------|---------
+ U              | Updated          | Refresh 이전 대비 변경된 경우 * 표시
+ Serial message |                  | 수신된 시리얼 메세지. 이 값을 기준으로 행이 생성된다.
+ CS             | Checksum         | 수신된 시리얼 메세지를 checksum 계산하여 정상이면 OK, 비정상이면 계산된 checksum값을 표시한다.
+ Type           | Message type     | 수신된 시리얼 메세지의 종류를 표시한다.<br> - sync1 / sync2 / sync3 / sync4 : 각 메세지에 할당된 time slot 동기화를 맞추기 위한 메세지로 보임.<br> - light : 조명<br> - thermostat : 난방<br> - SID : Smart Info Display (현관의 조그만 정보 표시장치로, 날씨, 주차위치, 미세먼지, 일괄조명 등의 상태 표시)
+ Req            | Request type     | 메세지 요청의 종류를 표시한다.<br> - sync : 각 메세지의 time slot 동기화를 위한 동기메세지<br> - get : 상태 조회 요청 메세지<br> - set : 제어 요청 메세지<br> - ack : get / set 등의 요청에 대한 응답 메세지<br> - reg : register callback - 특정 상황이 되면 cb 메세지를 보내달라고 요청하는 callback 등록 메세지<br> - cb : reg 요청이 있었을 때, 특정 상황이 되면 불리는 callback 메세지<br> - report : 별다른 요청이 없어도 특정 상황이 되거나, 특정 시간이 되면 상황을 report 하는 메세지 (날씨, SID 등)
+ Managed        | 관리 메세지 여부  | 분석이 완료되어 CONST.MSG_INFO object에서 관리되는 메세지이면 O, 아니면 X 표시
+ Count          |                  | 서버 구동 이후 동일 메세지의 발생 횟수
+ Period         |                  | 본 메세지와 동일 메세지가 2회이상 발생했을 때, 최종 2회의 시간 간격 (ms)
+ Slot           |                  | 본 메세지가 sync1 메세지(a15a007b) 발생 이후 몇 ms만에 발생하였는지 표시
+ Elapsed        |                  | 현재시점 기준으로 본 메세지가 몇 ms 전에 발생하였는지 표시
+ Last received  |                  | 본 메세지가 마지막으로 발생한 시간
 
 ***TBD***
 
