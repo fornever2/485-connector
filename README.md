@@ -171,7 +171,9 @@ MSG_INFO: [
 ```
 
 ## 485server Status
-If the 485server is successfully running, you can get device status and recieved serial messages status from webbrowser with below url.  
+
+If the 485server is successfully running, you can get device status and recieved serial messages status from webbrowser with below url. **NOTE THAT THIS PROJECT IS OPTIMIZED TO MY HOMENET RS485 SPEC. (SAMSUNG SDS HOMENET)**  
+
 ```
 http://<ip-address>:<port-number>/status
 ex) http://192.168.29.100:8080/status
