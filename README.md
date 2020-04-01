@@ -30,7 +30,6 @@ $ npm install
 
 ### Manual install (copy & paste code)
 
-See the [Manual](doc/install/smartapp/README.md) file for details
 1. Go to the [SmartThings IDE](https://account.smartthings.com/)
 2. Click `My SmartApps`
 3. Click `New SmartApp`
