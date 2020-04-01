@@ -98,9 +98,9 @@ You can install forever service with below command. (I added -g option in order 
 $ npm install -g forever
 ```
 And I also added [forever.json](485server/forever.json) file which has options for running server.  
-**NOTE THAT forever.json FILE SHOULD BE FMODIFIED IF THE PATH OF SERVER FILE IS DIFFERENT.**
-Also, you might need to run forever service when booting raspberry pi.
-It can be done by adding below lines to the bashrc script file of your system.
+**NOTE THAT forever.json FILE SHOULD BE FMODIFIED IF THE PATH OF SERVER FILE IS DIFFERENT.**  
+Also, you might need to run forever service when booting raspberry pi.  
+It can be done by adding below lines to the bashrc script file of your system.  
 ```
 mkdir -p ~/github/485-connector/485server/log
 forever start ~/github/485-connector/485server/forever.json
