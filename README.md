@@ -84,7 +84,7 @@ See the [Manual](doc/install/smartapp/README.md) file for details
 # Configuration
 - Serial Port
 
-# Run 485Server
+# Run 485server
 485server is based on node.js. So, you can run with below command.
 ```
 $ cd 485-connector/485server
@@ -98,7 +98,7 @@ You can install `forever` service with below command. (I added `-g` option in or
 $ npm install -g forever
 ```
 And I also added [`forever.json`](485server/forever.json) file which has options for running server.  
-**NOTE THAT forever.json FILE SHOULD BE FMODIFIED IF THE PATH OF SERVER FILE IS DIFFERENT.**  
+**NOTE THAT forever.json FILE SHOULD BE MODIFIED IF THE PATH OF SERVER FILE IS DIFFERENT.**  
 Also, you might need to run forever service when booting raspberry pi.  
 It can be done by adding below lines to the bashrc script file of your system.  
 ```
