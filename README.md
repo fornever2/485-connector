@@ -4,6 +4,8 @@ SmartThings connector for RS485 homenet devices.
 
 # Overview
 
+***TBD***
+
 # Prerequisites
 
 - SmartThings account
@@ -94,11 +96,15 @@ $ npm install
 
 # How to setup
 
-<span style="color:red">TBD</span>
+***TBD***
 
 ## Configure 485server
 
+***TBD***
+
 ### Serial Port
+
+***TBD***
 
 ## Run 485server
 
@@ -125,10 +131,19 @@ forever start ~/github/485-connector/485server/forever.json
 
 ## Install 485-connector SmartApp into SmartThings app
 
+***TBD***
 
 # How to analyze serial message
 
-## Parse serial message for each homenet
+Since RS485 homenet has no standard specification, each company or apartment has different protocol spec.  
+So, we have to analyze serial message by monitoring serial and triggering functions from wallpad / SID / etc.  
+In my case, my apartment has Samsung SDS homenet system.  
+(But little bit different with previously analyzed by Erita in Naver SmartThings community (https://cafe.naver.com/stsmarthome/7256))  
+485server provides some utility function to analyze RS485 serial messages.
+
+## Parse RS485 serial message
+
+***TBD***
 
 ## Log
 
@@ -254,5 +269,8 @@ This table shows the statistics of every parsed serial messages including manage
 - Log filtered messages :
 - Unknown messages :
 
+***TBD***
 
 # How to add/modify serial message handler
+
+***TBD***
