@@ -113,5 +113,24 @@ forever start ~/github/485-connector/485server/forever.json
 [Device Status 분석](https://github.com/fornever2/485-connector/blob/master/serial_analysis_sds.md)
 
 ## Log
+Forever service stores log file on the path described in [`forever.json`](485server/forever.json) file like below.
+```
+  "logFile": "/home/pi/github/485-connector/485server/log/server.log"
+```
+Since the log is written in file, in order to see the live log from shell with `tail` command like below.
+```
+$ tail -f /home/pi/github/485-connector/485server/log/server.log
+```
+Or, if the 485server is successfully running, you can get log from webbrowser with below url.
+```
+http://<ip-address>:<port-number>/log
+ex) http://192.168.29.100:8080/log
+```
+Sometimes it fails to get log if the log is too big. Then, you can reset log with below url.
+```
+http://<ip-address>:<port-number>/resetlog
+ex) http://192.168.29.100:8080/resetlog
+```
+Then, the log will be backup as renamed file with format `server-<date>-<time>.log` and restart to log.
 
 # How to add/modify serial message handler
