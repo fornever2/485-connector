@@ -1,10 +1,37 @@
-# 485-connector
+- [Overview](#overview)
+- [Prerequisites](#prerequisites)
+- [How to install](#how-to-install)
+  * [Install 485server](#install-485server)
+  * [Install SmartApp](#install-smartapp)
+    + [Manual install (copy & paste code)](#manual-install--copy---paste-code-)
+    + [Install SmartApp using the GitHub Repo integration](#install-smartapp-using-the-github-repo-integration)
+  * [Install DTH (Device Type Handler)](#install-dth--device-type-handler-)
+    + [Manual install (copy & paste code)](#manual-install--copy---paste-code--1)
+    + [Install DTH using the GitHub Repo integration](#install-dth-using-the-github-repo-integration)
+- [How to setup](#how-to-setup)
+  * [Configure 485server](#configure-485server)
+    + [Serial Port](#serial-port)
+  * [Run 485server](#run-485server)
+  * [Install 485-connector SmartApp into SmartThings app](#install-485-connector-smartapp-into-smartthings-app)
+- [How to analyze serial message](#how-to-analyze-serial-message)
+  * [Parse RS485 serial message](#parse-rs485-serial-message)
+  * [Log](#log)
+    + [Watch Log](#watch-log)
+    + [Reset Log File](#reset-log-file)
+    + [Configure Log](#configure-log)
+  * [485server Status](#485server-status)
+    + [Current device Status](#current-device-status)
+    + [Recieved Serial Messages](#recieved-serial-messages)
+  * [Write serial message](#write-serial-message)
+- [How to add/modify serial message handler](#how-to-add-modify-serial-message-handler)
 
-SmartThings connector for RS485 homenet devices.
+-------------------------------------------------------------------------
 
 # Overview
 
-***TBD***
+485-connector는 RS485로 제어되는 homenet 기기들을 SmartThings로 제어하기 위한 connector 모듈이다.
+
+-------------------------------------------------------------------------
 
 # Prerequisites
 
