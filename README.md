@@ -1,6 +1,8 @@
 # Overview
 
 485-connector는 RS485로 제어되는 homenet 기기들을 SmartThings로 제어하기 위한 connector 모듈이다.
+기본적인 concept은 Naver의 [SmartThings community](https://cafe.naver.com/stsmarthome/)에서 에리타님 게시물( https://cafe.naver.com/stsmarthome/7256 )을 참고하여 작성하였다.
+또한, 아기나무집님의 [mi-connector](https://github.com/fison67/mi_connector), [ty-connector](https://github.com/fison67/TY-Connector) 등 다양한 connector를 참고하여 작성되었다.
 
 -------------------------------------------------------------------------
 
@@ -177,7 +179,7 @@ RS485 homenet의 경우 정해진 표준 protocol이 없기때문에, 각 회사
 
 ## Parse RS485 serial message
 
-참고로, 본 project의 parser는 네이버 SmartThings community의 에리타님께서 분석한 Samsung SDS homenet의 내용(https://cafe.naver.com/stsmarthome/7256)을 참고하여 작성되었다. (일부는 우리집의 환경에 맞게 수정되었다.)  
+참고로, 본 project의 parser는 네이버 SmartThings community의 에리타님께서 분석한 Samsung SDS homenet의 내용 ( https://cafe.naver.com/stsmarthome/7256 )을 참고하여 작성되었다. (일부는 우리집의 환경에 맞게 수정되었다.)  
 ***TBD***
 
 ## Log
