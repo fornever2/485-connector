@@ -120,7 +120,9 @@ $ node index.js
 $ npm install -g forever
 ```
 또한, 파일 수정시 또는 문제발생하여 종료되었을 때 자동 재구동 되도록 watch 옵션을 설정하거나, log 파일등을 제어하기 위해 [`forever.json`](485server/forever.json) 파일을 작성해 두었다.  
-***주의 : 이 `forever.json` 파일 내의 path등은 개인의 환경에 맞게 수정되어야 함***  
+
+> ***주의 : 이 `forever.json` 파일 내의 path등은 개인의 환경에 맞게 수정되어야 함***  
+
 그리고, `forever` service가 라즈베리파이 부팅시 자동 실행되도록 아래의 내용을 bashrc등 부팅 script에 추가하면 된다.  
 ```
 mkdir -p ~/github/485-connector/485server/log
@@ -188,7 +190,7 @@ MSG_INFO: [
 단순히 로그만으로 전체적인 message의 추이를 살펴보기에는 무리가 있기 때문에, 485server의 전반적은 상태를 모니터링 할 수 있는 webpage를 제공한다.  
 browser에서 아래 url을 입력하면 전반적인 상태에 대해 보여준다.  
 
-***주의 : 본 PROJECT는 필자 아파트의 HOMENET에 맞도록 구현되어 있으므로 모든 환경에 맞는 정보가 표시되지 않을 수 있다.***  
+> ***주의 : 본 PROJECT는 필자 아파트의 HOMENET에 맞도록 구현되어 있으므로 모든 환경에 맞는 정보가 표시되지 않을 수 있다.***  
 
 ```
 http://<ip-address>:<port-number>/status
