@@ -33,6 +33,7 @@
     + [Recieved Serial Messages](#recieved-serial-messages)
   * [Write serial message](#write-serial-message)
 - [How to add/modify serial message handler](#how-to-add-modify-serial-message-handler)
+- [미진사항](#미진사항)
 
 -------------------------------------------------------------------------
 
@@ -350,3 +351,12 @@ ex) http://192.168.29.100:8080/serial/ac79000154
 # How to add/modify serial message handler
 
 ***TBD***
+
+-------------------------------------------------------------------------
+
+# 미진사항
+
+- **다양한 DTH 추가** : 현재 DTH는 light와 thermostat만 작성되어 있다.  
+- **On borading process** : 현재는 485server가 구동되면, wallpad가 요청하는 상태조회 요청에 응답하는 message 만으로 device list를 구성하는데, 정상적인 경우라면, device를 add 하는 제대로 된 절차가 필요하다.  
+- **Frontend web page** : 현재는 text로만 상태를 알 수 있도록 간략히 구현되어 있지만, mi-connector 등과 같이 frontend web page가 구성되어야 device add, analyze, config 등을 수월하게 할 수 있을것으로 보인다.  
+- **다양한 homenet 대응** : 현재는 Samsung SDS의 protocol을 기반으로 작성되어 있지만, 다양한 homenet을 적용 가능하도록 대응하는 것이 필요해 보인다.  
