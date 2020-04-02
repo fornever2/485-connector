@@ -1,4 +1,11 @@
-- [Overview](#overview)
+# Overview
+
+485-connector는 RS485로 제어되는 homenet 기기들을 SmartThings로 제어하기 위한 connector 모듈이다.
+
+-------------------------------------------------------------------------
+
+목차
+
 - [Prerequisites](#prerequisites)
 - [How to install](#how-to-install)
   * [Install 485server](#install-485server)
@@ -24,12 +31,6 @@
     + [Recieved Serial Messages](#recieved-serial-messages)
   * [Write serial message](#write-serial-message)
 - [How to add/modify serial message handler](#how-to-add-modify-serial-message-handler)
-
--------------------------------------------------------------------------
-
-# Overview
-
-485-connector는 RS485로 제어되는 homenet 기기들을 SmartThings로 제어하기 위한 connector 모듈이다.
 
 -------------------------------------------------------------------------
 
