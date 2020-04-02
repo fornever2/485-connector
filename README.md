@@ -186,10 +186,28 @@ RS485 homenet의 경우 정해진 표준 protocol이 없기때문에, 각 회사
 ```javascript
 ...
 MSG_INFO: [
-	{ prefix: 0xac, cmdCode: 0x7a, len: 5, log: true, req: 'set', type: 'light', property: { switch: 'off' }, managed: true },
+	// 난방 온도 제어
+	{ prefix: 0xae, cmdCode: 0x7f, len: 8, log: true, req: 'set', type: 'thermostat', property: { setTemp: 0 }, managed: true,
+		setPropertyToMsg: (buf, id, name, value) => {
+			buf[2] = Number(id.substr(id.length - 1));	// deviceId의 끝자리 숫자
+			buf[3] = Number(value);				// 설정 온도 문자열을 숫자로 변환
+			return buf;
+		}
+	},
+	// 난방 온도 제어 응답
+	{ prefix: 0xb0, cmdCode: 0x7f, len: 8, log: true, req: 'ack', type: 'thermostat', property: { setTemp: 0 }, managed: true,
+		parseToProperty: (buf) => {
+			// buf[2]:방번호, buf[3]:mode(0:off, 1:on), buf[4]:설정온도, buf[5]:현재온도
+			let deviceId = 'thermostat' + buf[2].toString();
+			return [
+				{ deviceId: deviceId, propertyName: 'setTemp', propertyValue: buf[3] },
+			];
+		}
+	},
 ...
 ```
-serial message는 첫 1byte(`prefix`)가 485 장치 ID를 나타내는 것으로 보인다. 또한, 이에 대한 응답(ack)는 `prefix`가 0xb0로 시작하는 메세지가 전달되는 것으로 보인다.  
+serial message는 첫 1byte(`prefix`)가 485 장치 ID를 나타내는 것으로 보인다.  
+또한, 이에 대한 응답(ack)는 `prefix`가 0xb0로 시작하는 메세지가 전달되는 것으로 보인다.  
 두번째 byte(`cmdCode`)가 명령어 ID를 나타내는 것으로 보이며, 각 명령에 따라 message의 길이가 결정되는 것으로 보인다 (`len`). 특히 0xcc로 시작하는 message의 경우, 세번째 byte가 이후 전달되는 data의 길이를 나타낸다.  
 각각의 message의 request type (`req`)는 다음과 같다.  
 - sync : 각 메세지의 time slot 동기화를 위한 동기메세지  
@@ -200,8 +218,16 @@ serial message는 첫 1byte(`prefix`)가 485 장치 ID를 나타내는 것으로
 - cb : reg 요청이 있었을 때, 특정 상황이 되면 불리는 callback 메세지  
 - report : 별다른 요청이 없어도 특정 상황이 되거나, 특정 시간이 되면 상황을 report 하는 메세지 (날씨, SID 등)
 
-그 외에, `type`은 SmartThings의 DTH가 구분하는 device type이며, `property`는 SmartThings에서 제어 가능한 항목들이다.  
+`type`은 SmartThings의 DTH가 구분하는 device type이며 대략 아래와 같으며, 종류는 추가될 수 있다.
+- sync1 / sync2 / sync3 / sync4 : 각 메세지에 할당된 time slot 동기화를 맞추기 위한 메세지로 보임.
+- light : 조명
+- thermostat : 난방
+- SID : Smart Info Display (현관의 조그만 정보 표시장치로, 날씨, 주차위치, 미세먼지, 일괄조명 등의 상태 표시)
+
+`property`는 SmartThings에서 해당 device에 대해 제어 가능한 항목들이다.  
+
 이렇게 분석되어 parsing 및 명령이 가능한 message는 `managed` option을 `true`로 설정하였다.  
+또한, serial message가 짧은 시간에 너무 많이 발생하기 때문에, log 분석에 어려움이 있어, message별로 log에 출력할지 여부를 `log` property를 통해 설정할 수 있게 하였다.
 
 각 message 별로 parsing logic은 `parseToProperty` function에서 수행되도록 하였으며, 명령을 내리는 경우에는 `setPropertyToMsg` function을 통해 명령을 위한 serial message를 생성하도록 하였다.
 
@@ -255,14 +281,8 @@ ex) http://192.168.29.100:8080/resetlog
 
 ### Configure Log
 
-Serial port로 전달되는 메세지가 너무 많기 때문에, 분석에 어려움이 있을 수 있어서, serial message 별로 로그 출력 여부를 설정할 수 있는 option을 추가하였다.  
+앞서 설명한대로, Serial port로 전달되는 메세지가 너무 많기 때문에, 분석에 어려움이 있을 수 있어서, serial message 별로 로그 출력 여부를 설정할 수 있는 option을 추가하였다.  
 [`485server/index.js`](485server/index.js) 파일 내에서 `CONST.MSG_INFO` json object 내의 각 message 별 항목 중 `log` property를 `true` 나 `false`로 설정하여 해당 message를 log에 출력할지 여부를 설정할 수 있다.  
-```javascript
-...
-MSG_INFO: [
-	{ prefix: 0xac, cmdCode: 0x7a, len: 5, log: true, req: 'set', type: 'light', property: { switch: 'off' }, managed: true },
-...
-```
 
 ## 485server Status
 
@@ -366,7 +386,7 @@ MSG_INFO: [
  U              | Updated          | Refresh 이전 대비 변경된 경우 * 표시
  Serial message |                  | 수신된 시리얼 메세지. 이 값을 기준으로 행이 생성된다.
  CS             | Checksum         | 수신된 시리얼 메세지를 checksum 계산하여 정상이면 OK, 비정상이면 계산된 checksum값을 표시한다.
- Type           | Message type     | 수신된 시리얼 메세지의 종류를 표시한다.<br> - sync1 / sync2 / sync3 / sync4 : 각 메세지에 할당된 time slot 동기화를 맞추기 위한 메세지로 보임.<br> - light : 조명<br> - thermostat : 난방<br> - SID : Smart Info Display (현관의 조그만 정보 표시장치로, 날씨, 주차위치, 미세먼지, 일괄조명 등의 상태 표시)
+ Type           | Message type     | 수신된 시리얼 메세지의 종류를 표시한다.
  Req            | Request type     | 메세지 요청의 종류를 표시한다.
  Managed        | 관리 메세지 여부  | 분석이 완료되어 CONST.MSG_INFO object에서 관리되는 메세지이면 O, 아니면 X 표시
  Count          |                  | 서버 구동 이후 동일 메세지의 발생 횟수
@@ -374,8 +394,6 @@ MSG_INFO: [
  Slot           |                  | 본 메세지가 sync1 메세지(a15a007b) 발생 이후 몇 ms만에 발생하였는지 표시
  Elapsed        |                  | 현재시점 기준으로 본 메세지가 몇 ms 전에 발생하였는지 표시
  Last received  |                  | 본 메세지가 마지막으로 발생한 시간
-
-***TBD***
 
 -------------------------------------------------------------------------
 
