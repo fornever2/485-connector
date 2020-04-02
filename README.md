@@ -24,6 +24,7 @@
   * [Install 485-connector SmartApp into SmartThings app](#install-485-connector-smartapp-into-smartthings-app)
 - [How to analyze serial message](#how-to-analyze-serial-message)
   * [Parse RS485 serial message](#parse-rs485-serial-message)
+  * [Writing serial message to RS485 system](#writing-serial-message-to-rs485-system)
   * [Log](#log)
     + [Watch Log](#watch-log)
     + [Reset Log File](#reset-log-file)
@@ -31,9 +32,8 @@
   * [485server Status](#485server-status)
     + [Current device Status](#current-device-status)
     + [Recieved Serial Messages](#recieved-serial-messages)
-  * [Write serial message](#write-serial-message)
 - [How to add/modify serial message handler](#how-to-add-modify-serial-message-handler)
-- [미진사항](#미진사항)
+- [미진사항](#----)
 
 -------------------------------------------------------------------------
 
@@ -208,7 +208,10 @@ MSG_INFO: [
 ```
 serial message는 첫 1byte(`prefix`)가 485 장치 ID를 나타내는 것으로 보인다.  
 또한, 이에 대한 응답(ack)는 `prefix`가 0xb0로 시작하는 메세지가 전달되는 것으로 보인다.  
-두번째 byte(`cmdCode`)가 명령어 ID를 나타내는 것으로 보이며, 각 명령에 따라 message의 길이가 결정되는 것으로 보인다 (`len`). 특히 0xcc로 시작하는 message의 경우, 세번째 byte가 이후 전달되는 data의 길이를 나타낸다.  
+
+두번째 byte(`cmdCode`)가 명령어 ID를 나타내는 것으로 보이며, 각 명령에 따라 message의 길이가 결정되는 것으로 보인다 (`len`).  
+특히 0xcc로 시작하는 message의 경우, 세번째 byte가 이후 전달되는 data의 길이를 나타낸다.  
+
 각각의 message의 request type (`req`)는 다음과 같다.  
 - sync : 각 메세지의 time slot 동기화를 위한 동기메세지  
 - get : 상태 조회 요청 메세지  
@@ -227,6 +230,7 @@ serial message는 첫 1byte(`prefix`)가 485 장치 ID를 나타내는 것으로
 `property`는 SmartThings에서 해당 device에 대해 제어 가능한 항목들이다.  
 
 이렇게 분석되어 parsing 및 명령이 가능한 message는 `managed` option을 `true`로 설정하였다.  
+
 또한, serial message가 짧은 시간에 너무 많이 발생하기 때문에, log 분석에 어려움이 있어, message별로 log에 출력할지 여부를 `log` property를 통해 설정할 수 있게 하였다.
 
 각 message 별로 parsing logic은 `parseToProperty` function에서 수행되도록 하였으며, 명령을 내리는 경우에는 `setPropertyToMsg` function을 통해 명령을 위한 serial message를 생성하도록 하였다.
@@ -237,10 +241,11 @@ Checksum 계산방법은 Checksum byte를 제외한 모든 byte를 XOR 한 후, 
 ## Writing serial message to RS485 system
 
 RS485 통신 특성상 다른 message와의 충돌을 막기 위한 방법이 필요하다.  
-업체마다 고유의 protocol을 사용할 수 있고, modbus 같은 표준 방식을 사용할 수도 있는데, Samsung SDS homenet의 경우 modbus를 사용하는 것 같지는 않아 보인다.
-serial log를 분석하다가 발견한 내용으로는 a15a007b, a25a0078, a35a0079, a45a007e 메세지(a.k.a. sync message)가 30ms 간격으로 발생한 후, 각각의 message들이 대략 30ms timeslot을 할당받은 것으로 보이며, 약 470ms 주기로 반복된다.
-이 중, 대부분의 상태조회 message는 0ms ~ 250ms 구간에 빈번하게 발생하며, 그 외의 message들은 250ms ~ 470ms 구간에 산발적으로 발생한다.
-따라서, 485server는 serial port에 message를 write 할 때 최대한 충돌을 피하기 위해 0ms ~ 300ms 구간을 피해서 write 하도록 설계하였다.
+업체마다 고유의 protocol을 사용할 수 있고, modbus 같은 표준 방식을 사용할 수도 있는데, Samsung SDS homenet의 경우 modbus를 사용하는 것 같지는 않아 보인다.  
+
+serial log를 분석하다가 발견한 내용으로는 a15a007b, a25a0078, a35a0079, a45a007e 메세지(a.k.a. sync message)가 30ms 간격으로 발생한 후, 각각의 message들이 대략 30ms timeslot을 할당받은 것으로 보이며, 약 470ms 주기로 반복된다.  
+이 중, 대부분의 상태조회 message는 0ms ~ 250ms 구간에 빈번하게 발생하며, 그 외의 message들은 250ms ~ 470ms 구간에 산발적으로 발생한다.  
+따라서, 485server는 serial port에 message를 write 할 때 최대한 충돌을 피하기 위해 0ms ~ 300ms 구간을 피해서 write 하도록 설계하였다.  
 
 485server는 485 명령을 test 하기 위해서 web url을 제공한다.  
 아래 url을 browser에 입력함으로서 RS485 homenet에 serial message를 write 할 수 있다.  
