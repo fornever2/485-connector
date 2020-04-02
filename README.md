@@ -269,7 +269,7 @@ RS485 통신 특성상 다른 message와의 충돌을 막기 위한 방법이 �
 
 serial log를 분석하다가 발견한 내용으로는 a15a007b, a25a0078, a35a0079, a45a007e 메세지(a.k.a. sync message)가 30ms 간격으로 발생한 후, 각각의 message들이 대략 30ms timeslot을 할당받은 것으로 보이며, 약 470ms 주기로 반복된다.  
 이 중, 대부분의 상태조회 message는 0ms ~ 250ms 구간에 빈번하게 발생하며, 그 외의 message들은 250ms ~ 470ms 구간에 산발적으로 발생한다.  
-따라서, 485server는 serial port에 message를 write 할 때 최대한 충돌을 피하기 위해 0ms ~ 300ms 구간을 피해서 write 하도록 설계하였다.  
+따라서, 485server는 serial port에 message를 write 할 때 최대한 충돌을 피하기 위해 0ms ~ 300ms 구간을 피해서 write 하도록 설계하였고, 요청에 따른 ack message가 수신되지 않으면 500ms 주기로 10회 retry 하도록 하였다.  
 
 485server는 485 명령을 test 하기 위해서 web url을 제공한다.  
 아래 url을 browser에 입력함으로서 RS485 homenet에 serial message를 write 할 수 있다.  
