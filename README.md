@@ -151,7 +151,7 @@ $ node index.js
 ```bash
 $ npm install -g forever
 ```
-또한, 파일 수정시 또는 문제발생하여 종료되었을 때 자동 재구동 되도록 watch 옵션을 설정하거나, log 파일등을 제어하기 위해 [`forever.json`](485server/forever.json) 파일을 작성해 두었다.  
+또한, 파일 수정시 또는 문제발생하여 종료되었을 때 자동 재구동 되도록 watch 옵션을 설정하거나, log 파일등을 제어하기 위해 [`485server/forever.json`](485server/forever.json) 파일을 작성해 두었다.  
 
 > ***주의 : 이 `forever.json` 파일 내의 path등은 개인의 환경에 맞게 수정되어야 함***  
 
@@ -161,7 +161,7 @@ mkdir -p ~/github/485-connector/485server/log
 forever start ~/github/485-connector/485server/forever.json
 ```
 위에서 `mkdir -p` 명령으로 log directory를 생성한 이유는, 해당 directory가 없을 경우, log 생성이 안되어 forever service 구동에 실패하기 때문이다.  
-또한, `log` directory에 파일이 계속 생성/수정되기 때문에, `forever`의 `watch` option을 사용할 경우 무한 재기동이 될 수 있기 때문에, [`.foreverignore`](485server/.foreverignore) 파일에 수정을 허용하는 파일에 대한 list를 명기하여야 한다.
+또한, `log` directory에 파일이 계속 생성/수정되기 때문에, `forever`의 `watch` option을 사용할 경우 무한 재기동이 될 수 있기 때문에, [`485server/.foreverignore`](485server/.foreverignore) 파일에 수정을 허용하는 파일에 대한 list를 명기하여야 한다.
 
 ## Install 485-connector SmartApp into SmartThings app
 
@@ -186,7 +186,7 @@ RS485 homenet의 경우 정해진 표준 protocol이 없기때문에, 각 회사
 
 만약 485server를 `$ node index.js` 명령으로 수행했다면, console log가 바로 출력되어 log를 볼 수 있지만, `forever` service를 통하여 구동되었다면, log는 파일로 저장되기때문에, live log를 바로 직접 볼 수는 없을 것이다.  
 이 경우, 아래의 방법들을 이용하여 log를 볼 수 있다.  
-`Forever` service 는 [`forever.json`](485server/forever.json) 파일에 아래와 같이 설정된 path의 파일에 log를 저장한다.  
+`Forever` service 는 [`485server/forever.json`](485server/forever.json) 파일에 아래와 같이 설정된 path의 파일에 log를 저장한다.  
 ```
   "logFile": "/home/pi/github/485-connector/485server/log/server.log"
 ```
