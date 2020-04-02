@@ -8,20 +8,20 @@ SmartThings connector for RS485 homenet devices.
 
 # Prerequisites
 
-- SmartThings account
-- RS485 to Serial
-- Node.js and npm installed local server (Raspberry Pi, Linux Server, etc.)
+- SmartThings 계정
+- RS485 to Serial 모듈
+- Node.js와 npm이 설치된 local server (Raspberry Pi, Linux Server 등)
 
 # How to install
 
-485-connector consists of three main parts.
-- **485server** : node.js server which connected to RS485 serial port and provide information to SmartThings cloud.
-- **SmartApp** : SmartThings service application which communicates with 485server.
-- **DTH (Device Type Handler)** : SmartThings device handler codes for each devices of RS485 homenet.
+485-connector는 다음 3가지 주요 파트로 구성되어 있다.  
+- **485server** : node.js로 구동되는 서버. homenet과 RS485 시리얼 포트와 연결되어 메세지 parsing 및 명령 전달을 수행하며, SmartThings hub를 통해 SmartThings cloud와 통신하여 이벤트 전달을 수행한다.  
+- **SmartApp** : groovy로 작성된 SmartThings cloud에 설치되는 service application. 485server와 통신하여 SmartThings 동작을 수행한다.  
+- **DTH (Device Type Handler)** : groovy로 작성된 SmartThings cloud에 설치되는 device handler. 각 RS485 homenet device의 동작을 처리한다.  
 
 ## Install 485server
 
-Clone or download this repository and run `npm install`
+github로부터 clone 또는 download 받아서 `npm install` 명령 수행  
 ```bash
 $ git clone git@github.com:fornever2/485-connector.git
 $ cd 485-connector/485server
@@ -44,12 +44,12 @@ $ npm install
 
 ### Install SmartApp using the GitHub Repo integration
 
-> Enable the GitHub integration before continuing the installation.  
-> Perform step 1 and 2 in the [SmartThings guide](https://docs.smartthings.com/en/latest/tools-and-ide/github-integration.html#step-1-enable-github-integration) to enable the GitHub integration for your SmartThings account.
+> 설치전에 GitHub integration을 수행하여야 함  
+> [SmartThings guide](https://docs.smartthings.com/en/latest/tools-and-ide/github-integration.html#step-1-enable-github-integration) 를 참고하여 SmartThings account와  GitHub integration을 enable 한다.  
 
 1. Go to the [SmartThings IDE](https://account.smartthings.com/)
 2. Select the `My SmartApps` tab
-  > Step 3 ~ 5 are only needed if the repo has not been added earlier
+  > 아래 3 ~ 5번 step은 이전에 수행한 이력이 있으면 생략 가능  
 3. Click `Settings` button
 4. Click `Add new repository` option and fill in the following information:   
     - Owner: fornever2   
@@ -78,12 +78,12 @@ $ npm install
 
 ### Install DTH using the GitHub Repo integration
 
-> Enable the GitHub integration before continuing the installation.  
-> Perform step 1 and 2 in the [SmartThings guide](https://docs.smartthings.com/en/latest/tools-and-ide/github-integration.html#step-1-enable-github-integration) to enable the GitHub integration for your SmartThings account.
+> 설치전에 GitHub integration을 수행하여야 함  
+> [SmartThings guide](https://docs.smartthings.com/en/latest/tools-and-ide/github-integration.html#step-1-enable-github-integration) 를 참고하여 SmartThings account와  GitHub integration을 enable 한다.  
 
 1. Go to the [SmartThings IDE](https://account.smartthings.com/)
 2. Select the `My Device Handlers` tab
-  > Step 3 ~ 5 are only needed if the repo has not been added earlier
+  > 아래 3 ~ 5번 step은 이전에 수행한 이력이 있으면 생략 가능
 3. Click `Settings` button
 4. Click `Add new repository` option and fill in the following information:
     - Owner: fornever2  
@@ -108,22 +108,20 @@ $ npm install
 
 ## Run 485server
 
-485server is based on node.js. So, you can run with below command.
+485server는 node.js를 기반으로 구동되므로 아래 명령으로 수행 가능하다.  
 ```bash
 $ cd 485-connector/485server
 $ node index.js
 ```
-But, this can not be run all the time even though you exited the shell.  
-This can be useful when you analyze the serial message or debug, but you might need the method the consistant service running.  
-In order to solve this problem, I used [`forever`](https://www.npmjs.com/package/forever) service.  
-You can install `forever` service with below command. (I added `-g` option in order to install globally.)  
+다만, 이렇게 수행할 경우, 명령을 수행한 shell이 종료될 때 server가 함께 종료되므로, debuggin 등 일시적으로 test 할 때에는 적절하지만, 지속적으로 구동되어야 하는 server로 동작하기에는 무리가 있다.  
+따라서, [`forever`](https://www.npmjs.com/package/forever) service를 이용하여 상시 구동 가능하도록 설정한다.  
+`forever` service는 아래 명령으로 설치 가능하다. (전역 설치를 위해 `-g` option 을 사용하였다.)  
 ```bash
 $ npm install -g forever
 ```
-And I also added [`forever.json`](485server/forever.json) file which has options for running server.  
-**NOTE THAT `forever.json` FILE SHOULD BE MODIFIED IF THE PATH OF SERVER FILE IS DIFFERENT.**  
-Also, you might need to run forever service when booting raspberry pi.  
-It can be done by adding below lines to the bashrc script file of your system.  
+또한, 파일 수정시 또는 문제발생하여 종료되었을 때 자동 재구동 되도록 watch 옵션을 설정하거나, log 파일등을 제어하기 위해 [`forever.json`](485server/forever.json) 파일을 작성해 두었다.  
+**이 `forever.json` 파일 내의 path등은 개인의 환경에 맞게 수정되어야 함**  
+그리고, `forever` service가 라즈베리파이 부팅시 자동 실행되도록 아래의 내용을 bashrc등 부팅 script에 추가하면 된다.  
 ```
 mkdir -p ~/github/485-connector/485server/log
 forever start ~/github/485-connector/485server/forever.json
@@ -135,32 +133,31 @@ forever start ~/github/485-connector/485server/forever.json
 
 # How to analyze serial message
 
-Since RS485 homenet has no standard specification, each company or apartment has different protocol spec.  
-So, we have to analyze serial message by monitoring serial and triggering functions from wallpad / SID / etc.  
-In my case, my apartment has Samsung SDS homenet system.  
-(But little bit different with previously analyzed by Erita in Naver SmartThings community (https://cafe.naver.com/stsmarthome/7256))  
-485server provides some utility function to analyze RS485 serial messages.
+RS485 homenet의 경우 정해진 표준 protocol이 없기때문에, 각 회사나 아파트단지별로 각기 다른 protocol로 구동된다.  
+그래서, 각자 자신의 환경에 맞도록 serial message를 분석해서 적용해야 한다.  
+이를 위해 각각 기기를 동작시키면서 serial message를 모니터링하여 분석하는 환경이 필요하여, 몇가지 util성 기능을 추가하였다.  
 
 ## Parse RS485 serial message
 
+참고로, 본 project의 parser는 네이버 SmartThings community의 에리타님께서 분석한 Samsung SDS homenet의 내용(https://cafe.naver.com/stsmarthome/7256)을 참고하여 작성되었다. (일부는 우리집의 환경에 맞게 수정되었다.)  
 ***TBD***
 
 ## Log
 
 ### Watch Log
 
-If you started 485server with `$ node index.js` command, console log will be shown on console.  
-But, if you started 485server with `forever` service, log will not be shown on console.
-Then, you can use below ways to watch log.  
-`Forever` service stores log file on the path described in [`forever.json`](485server/forever.json) file like below.  
+만약 485server를 `$ node index.js` 명령으로 수행했다면, console log가 바로 출력되어 log를 볼 수 있지만, `forever` service를 통하여 구동되었다면, log는 파일로 저장되기때문에, live log를 바로 직접 볼 수는 없을 것이다.  
+이 경우, 아래의 방법들을 이용하여 log를 볼 수 있다.  
+`Forever` service 는 [`forever.json`](485server/forever.json) 파일에 아래와 같이 설정된 path의 파일에 log를 저장한다.  
 ```
   "logFile": "/home/pi/github/485-connector/485server/log/server.log"
 ```
-Since the log is written in file, in order to see the live log from shell with `tail` command like below.  
+log가 파일에 저장되기 때문에, live log를 보기 어려울 때에는 아래와 같이 linux의 `tail` 명령을 이용해서 실시간으로 볼 수 있다.  
 ```bash
 $ tail -f /home/pi/github/485-connector/485server/log/server.log
 ```
-Or, if the 485server is successfully running, you can get log from webbrowser with below url.  
+또는, 485server가 정상적으로 구동되고 있다면, 아래의 url을 webbrowser로 열면 log를 볼 수 있다.  
+단, webbrowser로는 live log가 지속 update 되지는 않으므로 refresh를 통해 갱신해 가면서 보아야 한다.  
 ```
 http://<ip-address>:<port-number>/log
 ex) http://192.168.29.100:8080/log
@@ -168,18 +165,17 @@ ex) http://192.168.29.100:8080/log
 
 ### Reset Log File
 
-Sometimes it fails to get log if the log is too big. Then, you can reset log with below url.  
+간혹, log파일이 너무 클 경우 browser에서 출력을 못하고 오류가 날 수도 있다.  
+이 경우 아래의 url을 browser에서 열면 기존의 log는 `server-<date>-<time>.log` 파일 이름으로 변경되어 backup되고, 새로 log를 시작한다.  
 ```
 http://<ip-address>:<port-number>/resetlog
 ex) http://192.168.29.100:8080/resetlog
 ```
-Then, the log will be backup as renamed file with format `server-<date>-<time>.log` and restart to log.  
 
 ### Configure Log
 
-Since too many serial messages are comming from RS485 serial port, it is hard to see and store log files.  
-So, I added configure options to enable/disable log for each serial messages.  
-You can set `log` property to `true` or `false` at the `CONST.MSG_INFO` json object in file [`485server/index.js`](485server/index.js).
+Serial port로 전달되는 메세지가 너무 많기 때문에, 분석에 어려움이 있을 수 있어서, serial message 별로 로그 출력 여부를 설정할 수 있는 option을 추가하였다.  
+[`485server/index.js`](485server/index.js) 파일 내에서 `CONST.MSG_INFO` json object 내의 각 message 별 항목 중 `log` property를 `true` 나 `false`로 설정하여 해당 message를 log에 출력할지 여부를 설정할 수 있다.  
 ```javascript
 ...
 MSG_INFO: [
@@ -189,14 +185,16 @@ MSG_INFO: [
 
 ## 485server Status
 
-If the 485server is successfully running, you can get device status and recieved serial messages status from webbrowser with below url.  
-**NOTE THAT THIS PROJECT IS OPTIMIZED TO MY HOMENET RS485 SPEC. (SAMSUNG SDS HOMENET)**  
+단순히 로그만으로 전체적인 message의 추이를 살펴보기에는 무리가 있기 때문에, 485server의 전반적은 상태를 모니터링 할 수 있는 webpage를 제공한다.  
+browser에서 아래 url을 입력하면 전반적인 상태에 대해 보여준다.  
+
+**주의 : 본 PROJECT는 필자 아파트의 HOMENET에 맞도록 구현되어 있으므로 모든 환경에 맞는 정보가 표시되지 않을 수 있다.**  
 
 ```
 http://<ip-address>:<port-number>/status
 ex) http://192.168.29.100:8080/status
 ```
-Then, you can get text looks like below.
+그러면, 아래와 같은 화면이 표시된다.
 ```
  RS485 server - started at 4/1/2020, 8:02:40 PM
 
@@ -257,21 +255,30 @@ U  Serial message       CS   Type            Req       Managed   Count   Period 
 
 ### Current device Status
 
-This table shows the current status of parsed and managed 485 homenet devices.
+이 표는 현재 정상적으로 parsing되어 관리되고 있는 485 homenet 기기들의 상태 정보를 표시한다.  
 
-| Column     | Description                                                                  |
-|------------|------------------------------------------------------------------------------|
-| Type       | Device type name which is related to SmartThings DTH (Device Type Handler)   |
-| DeviceId   | Device identifier which can be used by SmartThings SmartApp and DTH          |
-| Properties | Properties of device which can be referred and controlled by SmartThings DTH |
+ Column     | Description
+------------|------------
+ Type       | SmartThings DTH (Device Type Handler)에서 사용되는 Device type name
+ DeviceId   | SmartThings SmartApp과 DTH에서 사용되는 DeviceId
+ Properties | SmartThings DTH에서 참조되어 monitoring 및 제어될 수 있는 각 device의 property
 
 ### Recieved Serial Messages
 
-This table shows the statistics of every parsed serial messages including managed/unmanaged/filtered/unknown
-- **Managed messages** : 
-- **Unmanaged messages** :
-- **Log filtered messages** :
-- **Unknown messages** :
+이 표는 모든 serial message에 대한 통계 정보를 표시한다.  
+[`485server/index.js`](485server/index.js) 파일 내에서 `CONST.MSG_INFO` json object로 관리되는지 여부에 따라 아래와 같이 4가지 message로 구분된다.
+```javascript
+...
+MSG_INFO: [
+	{ prefix: 0xac, cmdCode: 0x7a, len: 5, log: true, req: 'set', type: 'light', property: { switch: 'off' }, managed: true },
+...
+```
+- **Managed messages** : `CONST.MSG_INFO`에서 정상적으로 parsing 되어 관리되고 있는 message
+- **Unmanaged messages** : `CONST.MSG_INFO`에 항목은 있지만, 분석/관리되지 않은 message (managed property가 false인 항목)
+- **Log filtered messages** : log로 표시되지 않도록 설정된 message (log property가 false인 항목)
+- **Unknown messages** : `CONST.MSG_INFO`에 존재하지 않는 message
+
+표의 각 열에 대한 정보는 아래와 같다.
 
  Column         | Description      | Details 
 ----------------|------------------|---------
@@ -291,7 +298,8 @@ This table shows the statistics of every parsed serial messages including manage
 
 ## Write serial message
 
-If the 485server is successfully running, you can write serial message to RS485 homenet with below url.  
+485server가 정상적으로 구동중이면, 아래 url을 browser에 입력함으로서 RS485 homenet에 serial message를 write 할 수 있다.  
+이 기능을 이용하여 명령 전달 등을 test 할 수 있다.  
 ```
 http://<ip-address>:<port-number>/serial/<serial-message>
 ex) http://192.168.29.100:8080/serial/ac79000154
