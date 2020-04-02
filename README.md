@@ -291,7 +291,11 @@ This table shows the statistics of every parsed serial messages including manage
 
 ## Write serial message
 
-***TBD***
+If the 485server is successfully running, you can write serial message to RS485 homenet with below url.  
+```
+http://<ip-address>:<port-number>/serial/<serial-message>
+ex) http://192.168.29.100:8080/serial/ac79000154
+```
 
 # How to add/modify serial message handler
 
