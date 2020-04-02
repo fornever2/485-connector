@@ -12,6 +12,8 @@ SmartThings connector for RS485 homenet devices.
 - RS485 to Serial 모듈
 - Node.js와 npm이 설치된 local server (Raspberry Pi, Linux Server 등)
 
+-------------------------------------------------------------------------
+
 # How to install
 
 485-connector는 다음 3가지 주요 파트로 구성되어 있다.  
@@ -94,6 +96,8 @@ $ npm install
 7. Check the checkbox for the device types you need (or all of them) in the `New (only in GitHub)` column
 8. Check the `Publish` checkbox and click on the `Execute Update` button
 
+-------------------------------------------------------------------------
+
 # How to setup
 
 ***TBD***
@@ -132,6 +136,8 @@ forever start ~/github/485-connector/485server/forever.json
 ## Install 485-connector SmartApp into SmartThings app
 
 ***TBD***
+
+-------------------------------------------------------------------------
 
 # How to analyze serial message
 
@@ -306,6 +312,8 @@ MSG_INFO: [
 http://<ip-address>:<port-number>/serial/<serial-message>
 ex) http://192.168.29.100:8080/serial/ac79000154
 ```
+
+-------------------------------------------------------------------------
 
 # How to add/modify serial message handler
 
