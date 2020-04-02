@@ -2,6 +2,7 @@
 
 485-connector는 RS485로 제어되는 homenet 기기들을 SmartThings로 제어하기 위한 connector 모듈이다.  
 기본적인 concept은 Naver의 [SmartThings community](https://cafe.naver.com/stsmarthome/)에서 에리타님 게시물( https://cafe.naver.com/stsmarthome/7256 )을 참고하여 작성하였다.  
+위 게시물에서는 mqtt를 통해서 HA에서 제어하는 것을 목표로 하였으나, 본 project는 SmartThings와 연동하는 것을 목표로 한다.  
 또한, 아기나무집님의 [mi-connector](https://github.com/fison67/mi_connector), [ty-connector](https://github.com/fison67/TY-Connector) 등 다양한 connector를 참고하여 작성되었다.  
 
 -------------------------------------------------------------------------
@@ -131,15 +132,38 @@ $ npm install
 
 # How to setup
 
-***TBD***
-
 ## Configure 485server
 
-***TBD***
+485server를 구동하기위한 설정은 [485server/index.js](485server/index.js) 파일의 CONST에서 설정한다.
+```javascript
+const CONST = {
+	// SerialPort 이름 설정
+	SERIAL_PORT_NAME: "/dev/ttyUSB0",
+	// SerialPort 전송 Delay(ms)
+	SERIAL_SEND_RETRY_DELAY: 500,
+	SERIAL_SEND_RETRY_COUNT: 10,
+	// MQTT 수신 Delay(ms)
+	SERIAL_READY_DELAY: 1000 * 10,
 
-### Serial Port
+	// MQTT 브로커
+	MQTT_BROKER: 'mqtt://192.168.219.150',
+	MQTT_CLIENTID: 'Samsung-Homenet',
+	// MQTT Topic template
+	MQTT_TOPIC_PRFIX: 'homenet',
+	MQTT_STATE_TOPIC: 'homenet/%s/%s/state', // 상태 전달 (/homenet/${deviceId}/${property}/state/ = ${value})
+	MQTT_DEVICE_TOPIC: 'homenet/+/+/command', // 명령 수신 (/homenet/${deviceId}/${property}/command/ = ${value})
 
-***TBD***
+	// http port
+	HTTP_PORT: 8080,
+```
+Serial port 및 http port 등을 설정하면 된다.  
+참고로, Samsung SDS hometnet의 경우 serial 설정을 아래와 같이 하였으며, 타 homenet의 경우 다르게 설정해야 할 수 있다.
+- baudRate: 9600
+- dataBits: 8
+- parity: 'even'
+- stopBits: 1
+
+설정 내용을 보면 알겠지만, MQTT도 사용 가능하도록 기능을 놔두기는 하였다. 허나, test 된 사항은 아니며, ST 카페에서 사용되는 yaml파일과는 topic이 상이하여 바로 동작은 안 될 것으로 보인다.
 
 ## Run 485server
 
