@@ -160,6 +160,8 @@ $ npm install -g forever
 mkdir -p ~/github/485-connector/485server/log
 forever start ~/github/485-connector/485server/forever.json
 ```
+위에서 `mkdir -p` 명령으로 log directory를 생성한 이유는, 해당 directory가 없을 경우, log 생성이 안되어 forever service 구동에 실패하기 때문이다.  
+또한, `log` directory에 파일이 계속 생성/수정되기 때문에, `forever`의 `watch` option을 사용할 경우 무한 재기동이 될 수 있기 때문에, [`.foreverignore`](485server/.foreverignore) 파일에 수정을 허용하는 파일에 대한 list를 명기하여야 한다.
 
 ## Install 485-connector SmartApp into SmartThings app
 
