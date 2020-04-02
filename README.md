@@ -33,7 +33,7 @@
     + [Current device Status](#current-device-status)
     + [Recieved Serial Messages](#recieved-serial-messages)
 - [How to add/modify serial message handler](#how-to-add-modify-serial-message-handler)
-- [미진사항](#----)
+- [미진사항](#미진사항)
 
 -------------------------------------------------------------------------
 
