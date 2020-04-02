@@ -181,7 +181,47 @@ RS485 homenet의 경우 정해진 표준 protocol이 없기때문에, 각 회사
 ## Parse RS485 serial message
 
 참고로, 본 project의 parser는 네이버 SmartThings community의 에리타님께서 분석한 Samsung SDS homenet의 내용 ( https://cafe.naver.com/stsmarthome/7256 )을 참고하여 작성되었다. (일부는 우리집의 환경에 맞게 수정되었다.)  
-***TBD***
+		
+각 serial message 별 spec은 [`485server/index.js`](485server/index.js) 파일 내의 `CONST.MSG_INFO` json object에 명시되어 있다.
+```javascript
+...
+MSG_INFO: [
+	{ prefix: 0xac, cmdCode: 0x7a, len: 5, log: true, req: 'set', type: 'light', property: { switch: 'off' }, managed: true },
+...
+```
+serial message는 첫 1byte(`prefix`)가 485 장치 ID를 나타내는 것으로 보인다. 또한, 이에 대한 응답(ack)는 `prefix`가 0xb0로 시작하는 메세지가 전달되는 것으로 보인다.  
+두번째 byte(`cmdCode`)가 명령어 ID를 나타내는 것으로 보이며, 각 명령에 따라 message의 길이가 결정되는 것으로 보인다 (`len`). 특히 0xcc로 시작하는 message의 경우, 세번째 byte가 이후 전달되는 data의 길이를 나타낸다.  
+각각의 message의 request type (`req`)는 다음과 같다.  
+- sync : 각 메세지의 time slot 동기화를 위한 동기메세지  
+- get : 상태 조회 요청 메세지  
+- set : 제어 요청 메세지  
+- ack : get / set 등의 요청에 대한 응답 메세지  
+- reg : register callback - 특정 상황이 되면 cb 메세지를 보내달라고 요청하는 callback 등록 메세지  
+- cb : reg 요청이 있었을 때, 특정 상황이 되면 불리는 callback 메세지  
+- report : 별다른 요청이 없어도 특정 상황이 되거나, 특정 시간이 되면 상황을 report 하는 메세지 (날씨, SID 등)
+
+그 외에, `type`은 SmartThings의 DTH가 구분하는 device type이며, `property`는 SmartThings에서 제어 가능한 항목들이다.  
+이렇게 분석되어 parsing 및 명령이 가능한 message는 `managed` option을 `true`로 설정하였다.  
+
+각 message 별로 parsing logic은 `parseToProperty` function에서 수행되도록 하였으며, 명령을 내리는 경우에는 `setPropertyToMsg` function을 통해 명령을 위한 serial message를 생성하도록 하였다.
+
+그리고, 공통적으로 마지막 byte는 checksum을 나타낸다.  
+Checksum 계산방법은 Checksum byte를 제외한 모든 byte를 XOR 한 후, 0x80을 한 번 더 XOR 한다. 단, checksum bite 직전 bite가 FF인 경우에는 0x80을 XOR 하지 않는다. (특이하게, 0xcc03으로 시작하는 경우에는 0xFF가 있어도 0x80 적용)  
+
+## Writing serial message to RS485 system
+
+RS485 통신 특성상 다른 message와의 충돌을 막기 위한 방법이 필요하다.  
+업체마다 고유의 protocol을 사용할 수 있고, modbus 같은 표준 방식을 사용할 수도 있는데, Samsung SDS homenet의 경우 modbus를 사용하는 것 같지는 않아 보인다.
+serial log를 분석하다가 발견한 내용으로는 a15a007b, a25a0078, a35a0079, a45a007e 메세지(a.k.a. sync message)가 30ms 간격으로 발생한 후, 각각의 message들이 대략 30ms timeslot을 할당받은 것으로 보이며, 약 470ms 주기로 반복된다.
+이 중, 대부분의 상태조회 message는 0ms ~ 250ms 구간에 빈번하게 발생하며, 그 외의 message들은 250ms ~ 470ms 구간에 산발적으로 발생한다.
+따라서, 485server는 serial port에 message를 write 할 때 최대한 충돌을 피하기 위해 0ms ~ 300ms 구간을 피해서 write 하도록 설계하였다.
+
+485server는 485 명령을 test 하기 위해서 web url을 제공한다.  
+아래 url을 browser에 입력함으로서 RS485 homenet에 serial message를 write 할 수 있다.  
+```
+http://<ip-address>:<port-number>/serial/<serial-message>
+ex) http://192.168.29.100:8080/serial/ac79000154
+```
 
 ## Log
 
@@ -327,7 +367,7 @@ MSG_INFO: [
  Serial message |                  | 수신된 시리얼 메세지. 이 값을 기준으로 행이 생성된다.
  CS             | Checksum         | 수신된 시리얼 메세지를 checksum 계산하여 정상이면 OK, 비정상이면 계산된 checksum값을 표시한다.
  Type           | Message type     | 수신된 시리얼 메세지의 종류를 표시한다.<br> - sync1 / sync2 / sync3 / sync4 : 각 메세지에 할당된 time slot 동기화를 맞추기 위한 메세지로 보임.<br> - light : 조명<br> - thermostat : 난방<br> - SID : Smart Info Display (현관의 조그만 정보 표시장치로, 날씨, 주차위치, 미세먼지, 일괄조명 등의 상태 표시)
- Req            | Request type     | 메세지 요청의 종류를 표시한다.<br> - sync : 각 메세지의 time slot 동기화를 위한 동기메세지<br> - get : 상태 조회 요청 메세지<br> - set : 제어 요청 메세지<br> - ack : get / set 등의 요청에 대한 응답 메세지<br> - reg : register callback - 특정 상황이 되면 cb 메세지를 보내달라고 요청하는 callback 등록 메세지<br> - cb : reg 요청이 있었을 때, 특정 상황이 되면 불리는 callback 메세지<br> - report : 별다른 요청이 없어도 특정 상황이 되거나, 특정 시간이 되면 상황을 report 하는 메세지 (날씨, SID 등)
+ Req            | Request type     | 메세지 요청의 종류를 표시한다.
  Managed        | 관리 메세지 여부  | 분석이 완료되어 CONST.MSG_INFO object에서 관리되는 메세지이면 O, 아니면 X 표시
  Count          |                  | 서버 구동 이후 동일 메세지의 발생 횟수
  Period         |                  | 본 메세지와 동일 메세지가 2회이상 발생했을 때, 최종 2회의 시간 간격 (ms)
@@ -336,15 +376,6 @@ MSG_INFO: [
  Last received  |                  | 본 메세지가 마지막으로 발생한 시간
 
 ***TBD***
-
-## Write serial message
-
-485server가 정상적으로 구동중이면, 아래 url을 browser에 입력함으로서 RS485 homenet에 serial message를 write 할 수 있다.  
-이 기능을 이용하여 명령 전달 등을 test 할 수 있다.  
-```
-http://<ip-address>:<port-number>/serial/<serial-message>
-ex) http://192.168.29.100:8080/serial/ac79000154
-```
 
 -------------------------------------------------------------------------
 
