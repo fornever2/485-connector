@@ -352,7 +352,7 @@ const CONST = {
 		// 41 명령에 대한 응답
 		{ prefix: 0xb0, cmdCode: 0x41, len: 4, log: false, req: 'ack', type: 'SID-response', property: {  }},	// 41번 SID에 대한 응답
 
-		//{ prefix: 0xab, cmdCode: 0x41, len: 4, log: false, req: 'get', type: 'SID-gas',		property: {  }},	// 가스밸브 상태
+		{ prefix: 0xab, cmdCode: 0x41, len: 4, log: false, req: 'get', type: 'SID-gas',		 property: {  }},	// 가스밸브 상태
 		// // 가스밸브 상태
 		// { prefix: 0xab, cmdCode: 0x41, len: 4, log: true, req: 'get', type: 'gasValve', property: { valve: 'closed' }, managed: true,
 		// 	setPropertyToMsg: (buf, id, name, value) => {
@@ -468,6 +468,7 @@ class CustomTransform {
 // - SmartThings 및 MQTT로 device 상태 정보 전달 및 명령을 전달 받는다.
 class RS485server {
 	constructor() {
+		this._serverStartTime = new Date();
 		this._receivedMsgs = [];
 		this._serialReady = false;
 		this._syncTime = new Date();
@@ -987,8 +988,9 @@ class RS485server {
 
 	HTTP_get_status(req) {
 		var result = "<pre>";
-
-		result += "         Current device Status1\n";
+		
+		result += " RS485 server - started at " + this._serverStartTime.toLocaleString() + "\n\n";
+		result += " Current device Status1\n";
 		result += "=========================================================================================================================\n";
 		result += "Type           DeviceId       Properties\n";
 		result += "=========================================================================================================================\n";
@@ -1009,7 +1011,7 @@ class RS485server {
 		var knownStr = "";
 		var filteredStr = "";
 		var unknownStr = "";
-		result += "\n         Recieved Serial Messages\n";
+		result += "\n Recieved Serial Messages\n";
 		result += "=========================================================================================================================\n";
 		result += "U  Serial message       CS   Type            Req       Managed   Count   Period   slot   Time(ms)   Last received\n";
 		result += "=========================================================================================================================\n";

@@ -11,6 +11,7 @@
   "dependencies": {
     "express": "^4.17.1",
     "mqtt": "^3.0.0",
+    "serialport": "^8.0.7",
     "util": "^0.12.1"
   }
 }
