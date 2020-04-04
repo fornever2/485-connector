@@ -138,7 +138,6 @@ def setPropertyCallback(physicalgraph.device.HubResponse hubResponse) {
     try {
         msg = parseLanMessage(hubResponse.description)
         log.debug msg.json
-		//sendEvent(name:"switch", value:state.req_value)
 	} catch (e) {
         log.error("Exception caught while parsing data: "+e);
     }
