@@ -64,6 +64,9 @@ $ npm install
 
 ## Install SmartApp
 
+코드를 복사/붙이기 하는 수동설치 방법과 github repo를 연동하는 방법 중 선택하여 설치하면 된다.
+github 등 코드 형상관리에 익숙한 사람이라면 github repo를 연동하는 방법이 더 좋을것으로 판단되지만, 형상관리에 대한 개념이 부족한 사람은 그냥 코드 복사/붙이기로 해도 무방하다.
+
 ### Manual install (copy & paste code)
 
 1. Go to the [SmartThings IDE](https://account.smartthings.com/)
@@ -99,6 +102,8 @@ $ npm install
 12. Click `Update` button
 
 ## Install DTH (Device Type Handler)
+
+SmartApp 설치와 마찬가지로 수동설치 / github repo 연동 중 선택하여 설치하면 된다.
 
 ### Manual install (copy & paste code)
 
