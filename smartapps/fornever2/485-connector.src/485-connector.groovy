@@ -112,7 +112,7 @@ def settingPage(){
         	label name: "label", title:"You can change the name of this smartapp", required: false, multiple: false, description: name
         }
 		section("RS485 server setting") {
-        	paragraph "RS485 server should be accessible from SmartThings cloud. Please input RS485 server's IP address including port number.\nNOTE) Do not input local network address."
+        	paragraph "Please input RS485 server's local IP address including port number."
         	input "serverAddress", "text", title: "IP address (ex. 192.168.29.101:8080)", required: true, value: "192.168.29.101:8080"
         }
 	}
